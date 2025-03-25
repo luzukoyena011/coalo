@@ -1,92 +1,41 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 40 25% 98%;
+    --foreground: 30 10% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 30 10% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 30 10% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 27 30% 24%;
+    --primary-foreground: 40 25% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 30 20% 87%;
+    --secondary-foreground: 30 10% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 30 10% 96%;
+    --muted-foreground: 30 10% 40%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 142 12% 55%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 30 15% 90%;
+    --input: 30 15% 90%;
+    --ring: 30 30% 24%;
 
     --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -96,6 +45,125 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    -webkit-font-smoothing: antialiased;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+}
+
+@layer components {
+  .container-custom {
+    @apply container max-w-[1400px] px-4 md:px-8 mx-auto;
+  }
+  
+  .nav-link {
+    @apply relative px-1 py-2 text-coalo-stone font-medium transition-colors after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-0 after:bg-coalo-clay after:transition-all hover:text-coalo-clay hover:after:w-full;
+  }
+  
+  .section-title {
+    @apply text-3xl md:text-4xl lg:text-5xl font-display font-semibold mb-4 md:mb-6 text-coalo-stone;
+  }
+  
+  .section-subtitle {
+    @apply text-coalo-earth text-lg md:text-xl mb-8 md:mb-10 max-w-2xl mx-auto;
+  }
+
+  .price-card {
+    @apply flex flex-col p-6 md:p-8 rounded-2xl border border-border transition-all duration-300 relative bg-white shadow-sm hover:shadow-md;
+  }
+
+  .price-card.highlighted {
+    @apply border-coalo-moss border-2 bg-gradient-to-b from-white to-coalo-cream/20;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-coalo-moss text-white hover:bg-coalo-moss/90 h-11 px-8;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-muted text-coalo-stone hover:bg-muted/80 h-11 px-8;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-muted hover:text-accent-foreground h-11 px-8 text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  /* Animation utilities */
+  .reveal {
+    @apply opacity-0 transition-all duration-700 ease-out;
+  }
+  
+  .reveal.active {
+    @apply opacity-100;
+  }
+  
+  .reveal-up {
+    @apply translate-y-12 opacity-0 transition-all duration-700 ease-out;
+  }
+  
+  .reveal-up.active {
+    @apply translate-y-0 opacity-100;
+  }
+  
+  .reveal-left {
+    @apply -translate-x-12 opacity-0 transition-all duration-700 ease-out;
+  }
+  
+  .reveal-left.active {
+    @apply translate-x-0 opacity-100;
+  }
+  
+  .reveal-right {
+    @apply translate-x-12 opacity-0 transition-all duration-700 ease-out;
+  }
+  
+  .reveal-right.active {
+    @apply translate-x-0 opacity-100;
+  }
+
+  /* Glassmorphism */
+  .glass {
+    @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-sm;
+  }
+  
+  .glass-dark {
+    @apply bg-coalo-stone/60 backdrop-blur-lg border border-coalo-stone/10 text-white shadow-sm;
+  }
+
+  /* Text gradient effect */
+  .text-gradient {
+    @apply bg-gradient-to-r from-coalo-moss to-coalo-forest bg-clip-text text-transparent;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #E6D1B1;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #C17C74;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Additional styles */
+.image-fade-mask {
+  -webkit-mask-image: linear-gradient(to top, transparent, black 20%);
+  mask-image: linear-gradient(to top, transparent, black 20%);
 }
