@@ -14,8 +14,8 @@ const Hero = () => {
       <div className="absolute inset-0 z-0">
         <div className="w-full h-full bg-gradient-to-b from-transparent to-background/90 absolute inset-0 z-10"></div>
         <img 
-          src="https://images.unsplash.com/photo-1605810230434-7631ac76ec81" 
-          alt="Digital billboard in urban setting" 
+          src="https://images.unsplash.com/photo-1518770660439-4636190af475" 
+          alt="Tech tree structure on white background" 
           className="w-full h-full object-cover object-center"
         />
       </div>
