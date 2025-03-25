@@ -1,67 +1,64 @@
 
 import { useState } from 'react';
-import { Check } from 'lucide-react';
-import { PriceTier } from '../types';
 import { useRevealAnimation } from '../utils/animations';
+import { PriceTier } from '../types';
 import { formatCurrency } from '../utils/pdfGenerator';
 
-const tiers: PriceTier[] = [
+const priceTiers: PriceTier[] = [
   {
     name: 'Standard',
     monthlyPrice: 10000,
     annualPrice: 102000,
-    description: 'Essential advertising for small businesses looking to establish a presence.',
+    description: 'Perfect for small businesses looking to establish a presence.',
     features: [
-      '10-second advert duration',
+      '10-second advert',
       'Fixed scheduling',
       'Static images only',
       'Moderate cycle frequency',
-      'Monthly reporting',
-      'Standard support',
-    ],
+      'Basic analytics'
+    ]
   },
   {
     name: 'Pro',
     monthlyPrice: 25000,
     annualPrice: 255000,
-    description: 'Advanced features for growing brands seeking enhanced visibility.',
+    description: 'Ideal for growing businesses seeking more flexibility and impact.',
     features: [
-      '20-second advert duration',
+      '20-second advert',
       'Enhanced scheduling flexibility',
       'Mix of static and limited dynamic content',
-      'Increased cycle frequency',
-      'Bi-weekly reporting',
-      'Priority support',
-      'Basic AI-driven analytics',
+      'Higher cycle frequency',
+      'Detailed analytics dashboard',
+      'Email support'
     ],
-    highlighted: true,
+    highlighted: true
   },
   {
     name: 'Premium',
     monthlyPrice: 45000,
     annualPrice: 459000,
-    description: 'Complete creative freedom and maximum exposure for established brands.',
+    description: 'The ultimate package for maximum exposure and creative freedom.',
     features: [
-      '45-second advert duration',
+      '45-second advert',
       'Unlimited cycles per day',
       'Full creative freedom (video, dynamic or static)',
-      'AI-driven input and analytics',
+      'AI-driven input',
       'QR code discounts for first 100 customers',
       '24/7 dedicated support',
       'Customizable campaigns',
       'Overnight viewership',
-      'Tailored target market',
-    ],
-  },
+      'Tailored target market'
+    ]
+  }
 ];
 
 const PricingSection = () => {
-  const [isAnnual, setIsAnnual] = useState(true);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
   const headerReveal = useRevealAnimation();
   const cardsReveal = useRevealAnimation();
 
   return (
-    <section id="pricing" className="py-20 md:py-28">
+    <section id="pricing" className="py-20 md:py-28 bg-white">
       <div className="container-custom">
         <div 
           ref={headerReveal.ref} 
@@ -69,93 +66,82 @@ const PricingSection = () => {
         >
           <h2 className="section-title">Transparent Pricing</h2>
           <p className="section-subtitle">
-            Choose the plan that suits your advertising needs, with flexible options for businesses of all sizes.
+            Choose the perfect plan for your advertising needs. Save 15% with annual billing.
           </p>
           
-          <div className="flex items-center justify-center mt-8 mb-12">
-            <button
-              onClick={() => setIsAnnual(false)}
-              className={`px-4 py-2 rounded-l-md transition-all ${
-                !isAnnual 
-                  ? 'bg-coalo-earth text-white' 
-                  : 'bg-gray-100 text-coalo-stone hover:bg-gray-200'
-              }`}
+          <div className="flex justify-center mt-8 p-1 bg-muted rounded-full w-fit mx-auto">
+            <button 
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${billingCycle === 'monthly' ? 'bg-white shadow-sm text-coalo-stone' : 'text-coalo-stone/70'}`}
+              onClick={() => setBillingCycle('monthly')}
             >
               Monthly
             </button>
-            <button
-              onClick={() => setIsAnnual(true)}
-              className={`px-4 py-2 rounded-r-md transition-all ${
-                isAnnual 
-                  ? 'bg-coalo-earth text-white' 
-                  : 'bg-gray-100 text-coalo-stone hover:bg-gray-200'
-              }`}
+            <button 
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${billingCycle === 'annual' ? 'bg-white shadow-sm text-coalo-stone' : 'text-coalo-stone/70'}`}
+              onClick={() => setBillingCycle('annual')}
             >
-              Annual (15% Savings)
+              Annual <span className="text-coalo-clay">-15%</span>
             </button>
           </div>
         </div>
-
+        
         <div 
-          ref={cardsReveal.ref} 
-          className={`grid grid-cols-1 md:grid-cols-3 gap-8 transition-all duration-1000 ${cardsReveal.isIntersecting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
+          ref={cardsReveal.ref}
+          className={`grid grid-cols-1 md:grid-cols-3 gap-8 transition-all duration-700 delay-300 ${cardsReveal.isIntersecting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
         >
-          {tiers.map((tier) => (
+          {priceTiers.map((tier) => (
             <div 
               key={tier.name} 
               className={`price-card ${tier.highlighted ? 'highlighted' : ''}`}
             >
               {tier.highlighted && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-coalo-moss text-white text-xs font-semibold rounded-full">
-                  Recommended
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-coalo-moss text-white px-4 py-1 rounded-full text-xs font-semibold">
+                  Most Popular
                 </div>
               )}
               
               <h3 className="text-xl font-semibold text-coalo-stone mb-2">{tier.name}</h3>
               <p className="text-sm text-coalo-earth mb-6">{tier.description}</p>
               
-              {isAnnual ? (
-                <div className="mb-6">
-                  <p className="text-3xl font-display font-bold text-coalo-clay mb-1">
-                    {formatCurrency(tier.annualPrice)}
-                    <span className="text-sm font-normal text-coalo-stone/70">/month</span>
-                  </p>
-                  <p className="text-sm line-through text-coalo-stone/60">
-                    Original: {formatCurrency(tier.monthlyPrice * 12)}
-                  </p>
-                  <p className="text-xs text-coalo-stone/70 mt-1">
-                    Total annual: {formatCurrency(tier.annualPrice * 12)}
-                  </p>
+              <div className="mb-6">
+                <div className="flex items-baseline">
+                  <span className="text-3xl font-bold text-coalo-stone">
+                    {formatCurrency(billingCycle === 'monthly' ? tier.monthlyPrice : tier.annualPrice)}
+                  </span>
+                  <span className="text-coalo-earth ml-2">
+                    /{billingCycle === 'monthly' ? 'month' : 'year'}
+                  </span>
                 </div>
-              ) : (
-                <div className="mb-6">
-                  <p className="text-3xl font-display font-bold text-coalo-clay mb-1">
-                    {formatCurrency(tier.monthlyPrice)}
-                    <span className="text-sm font-normal text-coalo-stone/70">/month</span>
-                  </p>
-                  <p className="text-xs text-coalo-stone/70 mt-1">
-                    Billed monthly
-                  </p>
-                </div>
-              )}
+                
+                {billingCycle === 'annual' && (
+                  <>
+                    <div className="mt-1 text-sm text-coalo-earth line-through">
+                      Original price: {formatCurrency(tier.monthlyPrice * 12)}
+                    </div>
+                    <div className="mt-1 text-xs text-coalo-stone/70">
+                      Total annual price: {formatCurrency(tier.annualPrice * 12)}
+                    </div>
+                  </>
+                )}
+              </div>
               
               <ul className="space-y-3 mb-8">
                 {tier.features.map((feature, index) => (
                   <li key={index} className="flex items-start">
-                    <Check size={18} className="text-coalo-moss mt-0.5 mr-2 shrink-0" />
-                    <span className="text-sm text-coalo-stone/80">{feature}</span>
+                    <svg className="w-5 h-5 text-coalo-moss flex-shrink-0 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm text-coalo-stone">{feature}</span>
                   </li>
                 ))}
               </ul>
               
               <div className="mt-auto">
                 <a 
-                  href={`#quote?tier=${tier.name.toLowerCase()}`} 
-                  className={`w-full text-center py-2.5 px-4 rounded-md transition-colors ${
-                    tier.highlighted
-                      ? 'bg-coalo-moss text-white hover:bg-coalo-moss/90'
-                      : 'border border-coalo-earth/30 text-coalo-stone hover:bg-coalo-sand/20'
-                  }`}
+                  href="#quote" 
+                  className={`w-full text-center py-3 px-4 rounded-md transition-colors ${tier.highlighted 
+                    ? 'bg-coalo-moss text-white hover:bg-coalo-moss/90' 
+                    : 'bg-white border border-coalo-sand hover:bg-coalo-sand/10 text-coalo-stone'}`}
                 >
                   Get a Quote
                 </a>

@@ -1,175 +1,143 @@
 
-import { Calendar, Clock, Award, MessageSquare, BarChart, Zap } from 'lucide-react';
-import { ServiceFeature } from '../types';
 import { useRevealAnimation } from '../utils/animations';
+import { ServiceFeature } from '../types';
+import { Check, Clock, Palette, Zap, BarChart, Users, Sparkles } from 'lucide-react';
 
-const services: Record<string, ServiceFeature[]> = {
-  standard: [
-    { 
-      title: '10-Second Advert',
-      description: 'Concise advertisements optimized for quick viewer engagement',
-      icon: <Clock size={24} className="text-coalo-terracotta" />
-    },
-    { 
-      title: 'Fixed Scheduling',
-      description: 'Predetermined time slots for your content to be displayed',
-      icon: <Calendar size={24} className="text-coalo-terracotta" /> 
-    },
-    { 
-      title: 'Static Images',
-      description: 'High-quality static visuals for your advertising needs',
-      icon: <Zap size={24} className="text-coalo-terracotta" />
-    },
-  ],
-  pro: [
-    { 
-      title: '20-Second Advert',
-      description: 'Extended runtime for more comprehensive message delivery',
-      icon: <Clock size={24} className="text-coalo-moss" />
-    },
-    { 
-      title: 'Enhanced Scheduling',
-      description: 'Flexible timing options to target optimal viewing periods',
-      icon: <Calendar size={24} className="text-coalo-moss" /> 
-    },
-    { 
-      title: 'Mixed Content Types',
-      description: 'Combine static and limited dynamic elements for greater impact',
-      icon: <Zap size={24} className="text-coalo-moss" />
-    },
-    { 
-      title: 'AI-Driven Analytics',
-      description: 'Basic insights into viewer engagement and campaign performance',
-      icon: <BarChart size={24} className="text-coalo-moss" />
-    },
-  ],
-  premium: [
-    { 
-      title: '45-Second Advert',
-      description: 'Maximum exposure time for comprehensive storytelling',
-      icon: <Clock size={24} className="text-coalo-clay" />
-    },
-    { 
-      title: 'Unlimited Scheduling',
-      description: 'Complete freedom to display your content at any time',
-      icon: <Calendar size={24} className="text-coalo-clay" /> 
-    },
-    { 
-      title: 'Full Creative Freedom',
-      description: 'Use any combination of video, dynamic content, and static images',
-      icon: <Zap size={24} className="text-coalo-clay" />
-    },
-    { 
-      title: 'Advanced AI Analytics',
-      description: 'Comprehensive data analysis for campaign optimization',
-      icon: <BarChart size={24} className="text-coalo-clay" />
-    },
-    { 
-      title: '24/7 Dedicated Support',
-      description: 'Round-the-clock assistance from our specialized team',
-      icon: <MessageSquare size={24} className="text-coalo-clay" />
-    },
-    { 
-      title: 'Exclusive Benefits',
-      description: 'QR code discounts, overnight viewership, and tailored targeting',
-      icon: <Award size={24} className="text-coalo-clay" />
-    },
-  ],
-};
+const serviceFeatures: ServiceFeature[] = [
+  {
+    title: 'AI-Driven Targeting',
+    description: 'Our proprietary algorithms analyze foot traffic patterns to display your content at optimal times, increasing engagement.',
+    icon: <Zap className="w-6 h-6 text-coalo-clay" />
+  },
+  {
+    title: 'Creative Flexibility',
+    description: 'From static images to dynamic video content, our platform supports versatile creative formats to showcase your brand.',
+    icon: <Palette className="w-6 h-6 text-coalo-clay" />
+  },
+  {
+    title: 'Real-Time Analytics',
+    description: 'Access comprehensive dashboards that provide insights into impressions, engagement, and conversion metrics.',
+    icon: <BarChart className="w-6 h-6 text-coalo-clay" />
+  },
+  {
+    title: 'Strategic Scheduling',
+    description: 'Choose specific time slots to target your ideal demographic during peak hours for maximum visibility.',
+    icon: <Clock className="w-6 h-6 text-coalo-clay" />
+  },
+  {
+    title: 'Audience Targeting',
+    description: 'Reach specific demographics through our strategic billboard placement and timing algorithms.',
+    icon: <Users className="w-6 h-6 text-coalo-clay" />
+  },
+  {
+    title: 'Premium Content Quality',
+    description: 'High-resolution display technology ensures your visuals are crisp, vibrant, and attention-grabbing.',
+    icon: <Sparkles className="w-6 h-6 text-coalo-clay" />
+  }
+];
 
 const ServiceOffering = () => {
   const headerReveal = useRevealAnimation();
-  const standardReveal = useRevealAnimation();
-  const proReveal = useRevealAnimation();
-  const premiumReveal = useRevealAnimation();
+  const featuresReveal = useRevealAnimation();
+  const compareReveal = useRevealAnimation();
 
   return (
-    <section className="py-20 md:py-28 bg-gradient-to-b from-white to-coalo-cream/20">
+    <section id="services" className="py-20 md:py-28 bg-coalo-cream/10">
       <div className="container-custom">
         <div 
           ref={headerReveal.ref} 
           className={`text-center mb-16 transition-all duration-700 ${headerReveal.isIntersecting ? 'opacity-100' : 'opacity-0'}`}
         >
-          <h2 className="section-title">Service Offerings</h2>
+          <h2 className="section-title">Our Service Offerings</h2>
           <p className="section-subtitle">
-            Explore our range of advertising solutions, tailored to meet different needs and objectives.
+            We provide comprehensive digital outdoor advertising solutions tailored to your unique needs.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-16">
-          {/* Standard Tier */}
-          <div 
-            ref={standardReveal.ref} 
-            className={`transition-all duration-700 delay-100 ${standardReveal.isIntersecting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
-          >
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 rounded-full bg-coalo-terracotta/10 flex items-center justify-center">
-                <span className="text-coalo-terracotta font-semibold">S</span>
+        <div 
+          ref={featuresReveal.ref}
+          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20 transition-all duration-700 delay-300 ${featuresReveal.isIntersecting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
+        >
+          {serviceFeatures.map((feature, index) => (
+            <div key={index} className="p-6 bg-white rounded-xl shadow-sm border border-coalo-sand/10 hover:shadow-md transition-shadow">
+              <div className="p-3 rounded-lg bg-coalo-sand/10 inline-block mb-4">
+                {feature.icon}
               </div>
-              <h3 className="text-2xl font-display font-semibold text-coalo-stone">Standard Tier</h3>
+              <h3 className="text-xl font-semibold text-coalo-stone mb-3">{feature.title}</h3>
+              <p className="text-coalo-stone/80">{feature.description}</p>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {services.standard.map((service, index) => (
-                <div key={index} className="p-6 rounded-xl bg-white border border-coalo-sand/20 shadow-sm">
-                  <div className="w-10 h-10 rounded-lg bg-coalo-terracotta/10 flex items-center justify-center mb-4">
-                    {service.icon}
-                  </div>
-                  <h4 className="text-lg font-semibold text-coalo-stone mb-2">{service.title}</h4>
-                  <p className="text-sm text-coalo-stone/70">{service.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
+        </div>
+
+        <div 
+          ref={compareReveal.ref}
+          className={`bg-white p-8 rounded-xl shadow-sm border border-coalo-sand/10 transition-all duration-700 delay-500 ${compareReveal.isIntersecting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
+        >
+          <h3 className="text-2xl font-semibold text-coalo-stone mb-6 text-center">Compare Service Tiers</h3>
           
-          {/* Pro Tier */}
-          <div 
-            ref={proReveal.ref} 
-            className={`transition-all duration-700 delay-300 ${proReveal.isIntersecting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
-          >
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 rounded-full bg-coalo-moss/10 flex items-center justify-center">
-                <span className="text-coalo-moss font-semibold">P</span>
-              </div>
-              <h3 className="text-2xl font-display font-semibold text-coalo-stone">Pro Tier</h3>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {services.pro.map((service, index) => (
-                <div key={index} className="p-6 rounded-xl bg-white border border-coalo-moss/20 shadow-sm">
-                  <div className="w-10 h-10 rounded-lg bg-coalo-moss/10 flex items-center justify-center mb-4">
-                    {service.icon}
-                  </div>
-                  <h4 className="text-lg font-semibold text-coalo-stone mb-2">{service.title}</h4>
-                  <p className="text-sm text-coalo-stone/70">{service.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Premium Tier */}
-          <div 
-            ref={premiumReveal.ref} 
-            className={`transition-all duration-700 delay-500 ${premiumReveal.isIntersecting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
-          >
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 rounded-full bg-coalo-clay/10 flex items-center justify-center">
-                <span className="text-coalo-clay font-semibold">P+</span>
-              </div>
-              <h3 className="text-2xl font-display font-semibold text-coalo-stone">Premium Tier</h3>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {services.premium.map((service, index) => (
-                <div key={index} className="p-6 rounded-xl bg-white border border-coalo-clay/20 shadow-sm">
-                  <div className="w-10 h-10 rounded-lg bg-coalo-clay/10 flex items-center justify-center mb-4">
-                    {service.icon}
-                  </div>
-                  <h4 className="text-lg font-semibold text-coalo-stone mb-2">{service.title}</h4>
-                  <p className="text-sm text-coalo-stone/70">{service.description}</p>
-                </div>
-              ))}
-            </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-coalo-sand/20">
+                  <th className="py-4 px-4 text-left text-coalo-stone">Feature</th>
+                  <th className="py-4 px-4 text-center text-coalo-stone">Standard</th>
+                  <th className="py-4 px-4 text-center text-coalo-stone">Pro</th>
+                  <th className="py-4 px-4 text-center text-coalo-stone">Premium</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-coalo-sand/10">
+                  <td className="py-3 px-4 text-coalo-stone">Advert Duration</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">10 seconds</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">20 seconds</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">45 seconds</td>
+                </tr>
+                <tr className="border-b border-coalo-sand/10">
+                  <td className="py-3 px-4 text-coalo-stone">Scheduling</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">Fixed</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">Enhanced flexibility</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">Full flexibility</td>
+                </tr>
+                <tr className="border-b border-coalo-sand/10">
+                  <td className="py-3 px-4 text-coalo-stone">Content Type</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">Static images only</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">Static & limited dynamic</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">Full creative freedom</td>
+                </tr>
+                <tr className="border-b border-coalo-sand/10">
+                  <td className="py-3 px-4 text-coalo-stone">Cycle Frequency</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">Moderate</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">High</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">Unlimited</td>
+                </tr>
+                <tr className="border-b border-coalo-sand/10">
+                  <td className="py-3 px-4 text-coalo-stone">AI Features</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">
+                    <span className="text-coalo-stone/50">—</span>
+                  </td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">Basic</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">Advanced</td>
+                </tr>
+                <tr className="border-b border-coalo-sand/10">
+                  <td className="py-3 px-4 text-coalo-stone">Support</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">Email</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">Priority email</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">24/7 dedicated</td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-4 text-coalo-stone">QR Code Discounts</td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">
+                    <span className="text-coalo-stone/50">—</span>
+                  </td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">
+                    <span className="text-coalo-stone/50">—</span>
+                  </td>
+                  <td className="py-3 px-4 text-center text-coalo-stone">
+                    <Check className="w-5 h-5 text-coalo-moss mx-auto" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
