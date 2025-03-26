@@ -116,9 +116,9 @@ const PricingSection = () => {
                 {billingCycle === 'annual' && (
                   <>
                     <div className="mt-1 text-sm text-coalo-earth line-through">
-                      {tier.name === 'Standard' ? 'Original price: R10000' : 
-                       tier.name === 'Pro' ? 'Original price: R250000' : 
-                       'Original price: R45000'}
+                      {tier.name === 'Standard' ? 'Original price: R10,000' : 
+                       tier.name === 'Pro' ? 'Original price: R25,000' : 
+                       'Original price: R45,000'}
                     </div>
                     <div className="mt-1 text-xs text-coalo-stone/70">
                       {tier.name === 'Standard' ? 'Total annual price: R102,000' : 
