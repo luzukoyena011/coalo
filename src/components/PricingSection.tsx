@@ -7,7 +7,7 @@ import { formatCurrency } from '../utils/pdfGenerator';
 const priceTiers: PriceTier[] = [
   {
     name: 'Standard',
-    monthlyPrice: 10000,
+    monthlyPrice: 10000,  // Changed from 8500 to 10000
     annualPrice: 8500,
     description: 'Perfect for small businesses looking to establish a presence.',
     features: [
