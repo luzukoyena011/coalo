@@ -41,7 +41,11 @@ const Navbar = () => {
       <div className="container-custom flex items-center justify-between">
         {/* Logo */}
         <a href="#home" className="flex items-center">
-          <span className="text-2xl font-bold text-coalo-earth">Coalō</span>
+          <img 
+            src="/images/Coalo_262626_half2.PNG" 
+            alt="Coalō Logo" 
+            className="h-8 md:h-10" 
+          />
         </a>
 
         {/* Desktop Navigation */}

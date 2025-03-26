@@ -14,8 +14,8 @@ const Hero = () => {
       <div className="absolute inset-0 z-0">
         <div className="w-full h-full bg-gradient-to-b from-transparent to-background/90 absolute inset-0 z-10"></div>
         <img 
-          src="https://images.unsplash.com/photo-1518770660439-4636190af475" 
-          alt="Tech tree structure on white background" 
+          src="/images/treebillboard.png" 
+          alt="Coalō digital billboard" 
           className="w-full h-full object-cover object-center"
         />
       </div>
@@ -39,7 +39,7 @@ const Hero = () => {
             <a href="#quote" className="btn-primary text-center">
               Get a Quote
             </a>
-            <a href="#about" className="btn-outline text-[#7C9C8B] hover:bg-white/10 text-center">
+            <a href="#about" className="btn-outline text-coalo-moss hover:bg-white/10 text-center">
               Learn More
             </a>
           </div>

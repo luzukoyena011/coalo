@@ -40,4 +40,13 @@ export interface QuoteFormData {
   email: string;
   phone: string;
   tier: 'standard' | 'pro' | 'premium';
+  address: string;  // Added address field
+  duration: number;  // Added duration field
+}
+
+export interface BillboardLocation {
+  id: string;
+  name: string;
+  coordinates: [number, number]; // [latitude, longitude]
+  trafficVolume: string;
 }

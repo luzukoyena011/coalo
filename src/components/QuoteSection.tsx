@@ -4,7 +4,7 @@ import { useRevealAnimation } from '../utils/animations';
 import { QuoteFormData } from '../types';
 import { useToast } from '@/hooks/use-toast';
 import { generateQuotePDF, getPricingDetails, formatCurrency } from '../utils/pdfGenerator';
-import { Check } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, MinusCircle, PlusCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Checkbox } from './ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel } from './ui/form';
@@ -52,7 +52,9 @@ const QuoteSection = () => {
     companyName: '',
     email: '',
     phone: '',
-    tier: 'standard'
+    tier: 'standard',
+    address: '', // Added address field
+    duration: 1, // Added duration field
   });
   const [isAnnual, setIsAnnual] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,13 +72,29 @@ const QuoteSection = () => {
     setFormData(prev => ({ ...prev, tier }));
   };
 
+  const handleDurationChange = (increment: boolean) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      duration: increment 
+        ? Math.min(prev.duration + 1, 10) 
+        : Math.max(prev.duration - 1, 1) 
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
       // Generate PDF quote
-      const pdfUrl = generateQuotePDF(formData.tier, formData.name, formData.companyName);
+      const pdfUrl = generateQuotePDF(
+        formData.tier, 
+        formData.name, 
+        formData.companyName, 
+        formData.duration, 
+        isAnnual,
+        formData.address
+      );
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -96,7 +114,9 @@ const QuoteSection = () => {
         companyName: '',
         email: '',
         phone: '',
-        tier: 'standard'
+        tier: 'standard',
+        address: '',
+        duration: 1,
       });
     } catch (error) {
       console.error('Error generating quote:', error);
@@ -112,6 +132,7 @@ const QuoteSection = () => {
   };
 
   const selectedPricing = getPricingDetails(formData.tier);
+  const cycleDuration = isAnnual ? 'years' : 'months';
 
   return (
     <section id="quote" className="py-20 md:py-28 bg-white">
@@ -187,6 +208,42 @@ const QuoteSection = () => {
                 </label>
               </div>
             </div>
+
+            <div className="mb-8">
+              <h4 className="text-lg font-semibold text-coalo-stone mb-3">Broadcast Duration</h4>
+              <div className="flex items-center space-x-4">
+                <button 
+                  type="button"
+                  onClick={() => handleDurationChange(false)}
+                  disabled={formData.duration <= 1}
+                  className="p-1 rounded-full hover:bg-coalo-cream disabled:opacity-50"
+                  aria-label="Decrease duration"
+                >
+                  <MinusCircle className="w-6 h-6 text-coalo-clay" />
+                </button>
+                
+                <div className="flex items-center justify-center w-16 h-10 border-2 border-coalo-sand rounded-md">
+                  <span className="text-xl font-medium text-coalo-stone">{formData.duration}</span>
+                </div>
+                
+                <button 
+                  type="button"
+                  onClick={() => handleDurationChange(true)}
+                  disabled={formData.duration >= 10}
+                  className="p-1 rounded-full hover:bg-coalo-cream disabled:opacity-50"
+                  aria-label="Increase duration"
+                >
+                  <PlusCircle className="w-6 h-6 text-coalo-moss" />
+                </button>
+                
+                <span className="text-coalo-stone ml-2">
+                  {cycleDuration}
+                </span>
+              </div>
+              <p className="mt-2 text-sm text-coalo-stone/70">
+                Select between 1 and 10 {cycleDuration}
+              </p>
+            </div>
           </div>
           
           <div>
@@ -224,6 +281,22 @@ const QuoteSection = () => {
                       required
                       className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
                       placeholder="Acme Inc."
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="address" className="block text-sm font-medium text-coalo-stone mb-1">
+                      Company Address
+                    </label>
+                    <input
+                      type="text"
+                      id="address"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
+                      placeholder="123 Business St, Johannesburg"
                     />
                   </div>
                   
@@ -273,26 +346,36 @@ const QuoteSection = () => {
                       <span className="font-medium text-coalo-stone">{isAnnual ? 'Annual' : 'Monthly'}</span>
                     </div>
                     <div className="flex justify-between">
+                      <span className="text-coalo-stone/80">Duration:</span>
+                      <span className="font-medium text-coalo-stone">{formData.duration} {cycleDuration}</span>
+                    </div>
+                    <div className="flex justify-between">
                       <span className="text-coalo-stone/80">{isAnnual ? 'Annual Price:' : 'Monthly Price:'}</span>
                       <span className="font-medium text-coalo-stone">
                         {formatCurrency(isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice)}
                       </span>
                     </div>
                     <div className="border-t border-coalo-sand/30 my-2 pt-2 flex justify-between">
+                      <span className="text-coalo-stone/80">Subtotal:</span>
+                      <span className="font-medium text-coalo-stone">
+                        {formatCurrency((isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice) * formData.duration)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
                       <span className="text-coalo-stone/80">VAT (15%):</span>
                       <span className="font-medium text-coalo-stone">
-                        {formatCurrency((isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice) * 0.15)}
+                        {formatCurrency((isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice) * formData.duration * 0.15)}
                       </span>
                     </div>
                     <div className="flex justify-between text-lg">
                       <span className="font-medium text-coalo-stone">Total:</span>
                       <span className="font-bold text-coalo-clay">
-                        {formatCurrency((isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice) * 1.15)}
+                        {formatCurrency((isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice) * formData.duration * 1.15)}
                       </span>
                     </div>
                     {isAnnual && (
                       <div className="mt-2 text-sm text-coalo-clay">
-                        You save: {formatCurrency(selectedPricing.monthlyPrice * 12 * 0.15)} per year
+                        You save: {formatCurrency(selectedPricing.monthlyPrice * 12 * 0.15 * formData.duration)} per {formData.duration > 1 ? `${formData.duration} years` : 'year'}
                       </div>
                     )}
                   </div>
