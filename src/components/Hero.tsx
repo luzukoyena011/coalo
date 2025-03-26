@@ -39,7 +39,7 @@ const Hero = () => {
             <a href="#quote" className="btn-primary text-center">
               Get a Quote
             </a>
-            <a href="#about" className="btn-outline text-white hover:bg-white/10 text-center">
+            <a href="#about" className="btn-outline text-[#7C9C8B] hover:bg-white/10 text-center">
               Learn More
             </a>
           </div>

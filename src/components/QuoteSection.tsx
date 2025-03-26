@@ -5,6 +5,46 @@ import { QuoteFormData } from '../types';
 import { useToast } from '@/hooks/use-toast';
 import { generateQuotePDF, getPricingDetails, formatCurrency } from '../utils/pdfGenerator';
 import { Check } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Checkbox } from './ui/checkbox';
+import { Form, FormControl, FormField, FormItem, FormLabel } from './ui/form';
+import { useForm } from 'react-hook-form';
+
+const tierDetails = {
+  standard: {
+    name: 'Standard',
+    features: [
+      '10-second advert',
+      'Fixed scheduling',
+      'Static images only',
+      'Moderate cycle frequency',
+      'Basic analytics'
+    ]
+  },
+  pro: {
+    name: 'Pro',
+    features: [
+      '20-second advert',
+      'Enhanced scheduling flexibility',
+      'Mix of static and limited dynamic content',
+      'Higher cycle frequency',
+      'Detailed analytics dashboard',
+      'Email support'
+    ]
+  },
+  premium: {
+    name: 'Premium',
+    features: [
+      '45-second advert',
+      'Unlimited cycles per day',
+      'Full creative freedom (video, dynamic or static)',
+      'AI-driven input',
+      'QR code discounts for first 100 customers',
+      '24/7 dedicated support',
+      'Customizable campaigns'
+    ]
+  }
+};
 
 const QuoteSection = () => {
   const [formData, setFormData] = useState<QuoteFormData>({
@@ -14,10 +54,12 @@ const QuoteSection = () => {
     phone: '',
     tier: 'standard'
   });
+  const [isAnnual, setIsAnnual] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const headerReveal = useRevealAnimation();
   const formReveal = useRevealAnimation();
+  const form = useForm();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -69,42 +111,6 @@ const QuoteSection = () => {
     }
   };
 
-  const tierDetails = {
-    standard: {
-      name: 'Standard',
-      features: [
-        '10-second advert',
-        'Fixed scheduling',
-        'Static images only',
-        'Moderate cycle frequency',
-        'Basic analytics'
-      ]
-    },
-    pro: {
-      name: 'Pro',
-      features: [
-        '20-second advert',
-        'Enhanced scheduling flexibility',
-        'Mix of static and limited dynamic content',
-        'Higher cycle frequency',
-        'Detailed analytics dashboard',
-        'Email support'
-      ]
-    },
-    premium: {
-      name: 'Premium',
-      features: [
-        '45-second advert',
-        'Unlimited cycles per day',
-        'Full creative freedom (video, dynamic or static)',
-        'AI-driven input',
-        'QR code discounts for first 100 customers',
-        '24/7 dedicated support',
-        'Customizable campaigns'
-      ]
-    }
-  };
-
   const selectedPricing = getPricingDetails(formData.tier);
 
   return (
@@ -127,71 +133,58 @@ const QuoteSection = () => {
           <div>
             <h3 className="text-xl font-semibold text-coalo-stone mb-6">Select Your Advertising Tier</h3>
             
-            <div className="space-y-4 mb-8">
-              <div 
-                className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${formData.tier === 'standard' ? 'border-coalo-moss bg-coalo-cream/10' : 'border-coalo-sand/30 hover:border-coalo-sand'}`}
-                onClick={() => handleTierSelect('standard')}
+            <div className="mb-6">
+              <Select 
+                onValueChange={(value) => handleTierSelect(value as 'standard' | 'pro' | 'premium')}
+                defaultValue={formData.tier}
               >
-                <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-lg font-semibold text-coalo-stone">{tierDetails.standard.name}</h4>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-coalo-stone">{formatCurrency(selectedPricing.monthlyPrice)}<span className="text-sm font-normal">/month</span></p>
-                    <p className="text-sm text-coalo-earth">or {formatCurrency(selectedPricing.annualPrice)}/year</p>
-                  </div>
-                </div>
-                
-                <ul className="space-y-2">
-                  {tierDetails.standard.features.map((feature, index) => (
-                    <li key={index} className="flex items-start">
-                      <Check className="w-5 h-5 text-coalo-moss mt-0.5 mr-2 flex-shrink-0" />
-                      <span className="text-coalo-stone">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a pricing tier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="standard">Standard Plan</SelectItem>
+                  <SelectItem value="pro">Pro Plan</SelectItem>
+                  <SelectItem value="premium">Premium Plan</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="p-6 rounded-xl border-2 border-coalo-moss bg-coalo-cream/10 mb-8">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-lg font-semibold text-coalo-stone">{tierDetails[formData.tier].name}</h4>
               </div>
               
-              <div 
-                className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${formData.tier === 'pro' ? 'border-coalo-moss bg-coalo-cream/10' : 'border-coalo-sand/30 hover:border-coalo-sand'}`}
-                onClick={() => handleTierSelect('pro')}
-              >
-                <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-lg font-semibold text-coalo-stone">{tierDetails.pro.name}</h4>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-coalo-stone">{formatCurrency(25000)}<span className="text-sm font-normal">/month</span></p>
-                    <p className="text-sm text-coalo-earth">or {formatCurrency(255000)}/year</p>
-                  </div>
-                </div>
-                
-                <ul className="space-y-2">
-                  {tierDetails.pro.features.map((feature, index) => (
-                    <li key={index} className="flex items-start">
-                      <Check className="w-5 h-5 text-coalo-moss mt-0.5 mr-2 flex-shrink-0" />
-                      <span className="text-coalo-stone">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+              <ul className="space-y-2">
+                {tierDetails[formData.tier].features.map((feature, index) => (
+                  <li key={index} className="flex items-start">
+                    <Check className="w-5 h-5 text-coalo-moss mt-0.5 mr-2 flex-shrink-0" />
+                    <span className="text-coalo-stone">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div className="mb-8">
+              <h4 className="text-lg font-semibold text-coalo-stone mb-3">Billing Cycle</h4>
+              <div className="flex items-center gap-2 mb-2">
+                <Checkbox 
+                  id="monthly" 
+                  checked={!isAnnual} 
+                  onCheckedChange={() => setIsAnnual(false)}
+                />
+                <label htmlFor="monthly" className="text-coalo-stone cursor-pointer">
+                  Monthly Billing
+                </label>
               </div>
-              
-              <div 
-                className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${formData.tier === 'premium' ? 'border-coalo-moss bg-coalo-cream/10' : 'border-coalo-sand/30 hover:border-coalo-sand'}`}
-                onClick={() => handleTierSelect('premium')}
-              >
-                <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-lg font-semibold text-coalo-stone">{tierDetails.premium.name}</h4>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-coalo-stone">{formatCurrency(45000)}<span className="text-sm font-normal">/month</span></p>
-                    <p className="text-sm text-coalo-earth">or {formatCurrency(459000)}/year</p>
-                  </div>
-                </div>
-                
-                <ul className="space-y-2">
-                  {tierDetails.premium.features.map((feature, index) => (
-                    <li key={index} className="flex items-start">
-                      <Check className="w-5 h-5 text-coalo-moss mt-0.5 mr-2 flex-shrink-0" />
-                      <span className="text-coalo-stone">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="flex items-center gap-2">
+                <Checkbox 
+                  id="annual" 
+                  checked={isAnnual} 
+                  onCheckedChange={() => setIsAnnual(true)}
+                />
+                <label htmlFor="annual" className="text-coalo-stone cursor-pointer">
+                  Annual Billing <span className="text-coalo-clay">(Save 15%)</span>
+                </label>
               </div>
             </div>
           </div>
@@ -276,25 +269,36 @@ const QuoteSection = () => {
                       <span className="font-medium text-coalo-stone">{tierDetails[formData.tier].name}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-coalo-stone/80">Monthly Price:</span>
-                      <span className="font-medium text-coalo-stone">{formatCurrency(selectedPricing.monthlyPrice)}</span>
+                      <span className="text-coalo-stone/80">Billing Cycle:</span>
+                      <span className="font-medium text-coalo-stone">{isAnnual ? 'Annual' : 'Monthly'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-coalo-stone/80">Annual Price (15% off):</span>
-                      <span className="font-medium text-coalo-stone">{formatCurrency(selectedPricing.annualPrice)}</span>
+                      <span className="text-coalo-stone/80">{isAnnual ? 'Annual Price:' : 'Monthly Price:'}</span>
+                      <span className="font-medium text-coalo-stone">
+                        {formatCurrency(isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice)}
+                      </span>
                     </div>
                     <div className="border-t border-coalo-sand/30 my-2 pt-2 flex justify-between">
                       <span className="text-coalo-stone/80">VAT (15%):</span>
-                      <span className="font-medium text-coalo-stone">{formatCurrency(selectedPricing.annualPrice * 0.15)}</span>
+                      <span className="font-medium text-coalo-stone">
+                        {formatCurrency((isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice) * 0.15)}
+                      </span>
                     </div>
                     <div className="flex justify-between text-lg">
-                      <span className="font-medium text-coalo-stone">Total (Annual):</span>
-                      <span className="font-bold text-coalo-clay">{formatCurrency(selectedPricing.annualPrice * 1.15)}</span>
+                      <span className="font-medium text-coalo-stone">Total:</span>
+                      <span className="font-bold text-coalo-clay">
+                        {formatCurrency((isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice) * 1.15)}
+                      </span>
                     </div>
+                    {isAnnual && (
+                      <div className="mt-2 text-sm text-coalo-clay">
+                        You save: {formatCurrency(selectedPricing.monthlyPrice * 12 * 0.15)} per year
+                      </div>
+                    )}
                   </div>
                   
                   <p className="text-xs text-coalo-stone/70">
-                    * Quote is valid for 30 days. All prices exclude VAT unless specified.
+                    * Quote is valid for 30 days. All prices include VAT.
                   </p>
                 </div>
                 

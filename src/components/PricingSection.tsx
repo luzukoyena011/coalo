@@ -7,7 +7,7 @@ import { formatCurrency } from '../utils/pdfGenerator';
 const priceTiers: PriceTier[] = [
   {
     name: 'Standard',
-    monthlyPrice: 10000,
+    monthlyPrice: 8500,
     annualPrice: 102000,
     description: 'Perfect for small businesses looking to establish a presence.',
     features: [
@@ -116,10 +116,14 @@ const PricingSection = () => {
                 {billingCycle === 'annual' && (
                   <>
                     <div className="mt-1 text-sm text-coalo-earth line-through">
-                      Original price: {formatCurrency(tier.monthlyPrice * 12)}
+                      {tier.name === 'Standard' ? 'Original price: R10000' : 
+                       tier.name === 'Pro' ? 'Original price: R300000' : 
+                       'Original price: R540000'}
                     </div>
                     <div className="mt-1 text-xs text-coalo-stone/70">
-                      Total annual price: {formatCurrency(tier.annualPrice * 12)}
+                      {tier.name === 'Standard' ? 'Total annual price: R1,224,400' : 
+                       tier.name === 'Pro' ? 'Total annual price: R3,060,000' : 
+                       'Total annual price: R5,508,000'}
                     </div>
                   </>
                 )}
