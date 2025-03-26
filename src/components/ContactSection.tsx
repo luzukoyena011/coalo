@@ -225,7 +225,7 @@ const ContactSection = () => {
                   </div>
                   <div>
                     <h4 className="text-coalo-stone font-medium mb-1">Call Us</h4>
-                    <a href="tel:+27123456789" className="text-coalo-moss hover:underline">+27 12 345 6789</a>
+                    <a href="tel:+27720311487" className="text-coalo-moss hover:underline">+27 72 031 1487</a>
                     <p className="text-sm text-coalo-stone/70 mt-1">Mon-Fri from 9AM to 5PM</p>
                   </div>
                 </div>
