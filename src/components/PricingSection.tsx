@@ -7,8 +7,8 @@ import { formatCurrency } from '../utils/pdfGenerator';
 const priceTiers: PriceTier[] = [
   {
     name: 'Standard',
-    monthlyPrice: 8500,
-    annualPrice: 102000,
+    monthlyPrice: 10000,
+    annualPrice: 8500,
     description: 'Perfect for small businesses looking to establish a presence.',
     features: [
       '10-second advert',
@@ -21,7 +21,7 @@ const priceTiers: PriceTier[] = [
   {
     name: 'Pro',
     monthlyPrice: 25000,
-    annualPrice: 255000,
+    annualPrice: 21250,
     description: 'Ideal for growing businesses seeking more flexibility and impact.',
     features: [
       '20-second advert',
@@ -36,7 +36,7 @@ const priceTiers: PriceTier[] = [
   {
     name: 'Premium',
     monthlyPrice: 45000,
-    annualPrice: 459000,
+    annualPrice: 38250,
     description: 'The ultimate package for maximum exposure and creative freedom.',
     features: [
       '45-second advert',
@@ -117,13 +117,13 @@ const PricingSection = () => {
                   <>
                     <div className="mt-1 text-sm text-coalo-earth line-through">
                       {tier.name === 'Standard' ? 'Original price: R10000' : 
-                       tier.name === 'Pro' ? 'Original price: R300000' : 
-                       'Original price: R540000'}
+                       tier.name === 'Pro' ? 'Original price: R250000' : 
+                       'Original price: R45000'}
                     </div>
                     <div className="mt-1 text-xs text-coalo-stone/70">
-                      {tier.name === 'Standard' ? 'Total annual price: R1,224,400' : 
-                       tier.name === 'Pro' ? 'Total annual price: R3,060,000' : 
-                       'Total annual price: R5,508,000'}
+                      {tier.name === 'Standard' ? 'Total annual price: R102,000' : 
+                       tier.name === 'Pro' ? 'Total annual price: R255,060' : 
+                       'Total annual price: R459,000'}
                     </div>
                   </>
                 )}
