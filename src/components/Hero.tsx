@@ -27,7 +27,7 @@ const Hero = () => {
           </div>
           
           <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-display font-semibold mb-6 leading-tight">
-            <span className="text-coalo-stone">Coalō:</span> <span className="text-gradient">Nurturing Brands</span>, <br className="hidden md:block" />
+            <span className="text-coalo-stone">Coalō:</span> <span className="text-gradient">Nurturing Brands</span> <br className="hidden md:block" />
             <span className="text-coalo-stone">Uniting Communities</span>
           </h1>
           
