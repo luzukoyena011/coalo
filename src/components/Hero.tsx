@@ -31,7 +31,7 @@ const Hero = () => {
             <span className="text-[#54585a]">Uniting Communities</span>
           </h1>
           
-          <p className="text-lg md:text-xl text-white/80 mb-8 max-w-2xl">
+          <p className="text-lg md:text-xl text-coalo-earth mb-8 max-w-2xl">
             We combine AI-driven technology with strategic outdoor advertising to foster growth and meaningful connections in urban spaces.
           </p>
           

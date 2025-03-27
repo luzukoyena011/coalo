@@ -42,7 +42,7 @@ const Navbar = () => {
         {/* Logo */}
         <a href="#home" className="flex items-center">
           <img 
-            src="/images/Coalo_262626_half2.PNG" 
+            src="/images/coaloB.webp" 
             alt="Coalō Logo" 
             className="h-8 md:h-10" 
           />
