@@ -14,7 +14,7 @@ const Hero = () => {
       <div className="absolute inset-0 z-0">
         <div className="w-full h-full bg-gradient-to-b from-transparent to-background/90 absolute inset-0 z-10"></div>
         <img 
-          src="/images/treebillboard.png" 
+          src="/images/treebillboard.webp" 
           alt="Coalō digital billboard" 
           className="w-full h-full object-cover object-center"
         />
