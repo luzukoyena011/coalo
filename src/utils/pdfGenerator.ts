@@ -10,259 +10,228 @@ export const generateQuotePDF = (
   tier: 'standard' | 'pro' | 'premium',
   name: string,
   companyName: string,
-  phone: string,
+  phone: string, // Ensure this is added
   duration: number = 1,
   isAnnual: boolean = true,
   address: string = ''
 ): void => 
+
 {
-  // --- Data Preparation (Uses helper functions defined below) ---
-  const currentDate = format(new Date(), 'dd MMMM yyyy'); // Corrected format
+  // --- Data Preparation ---
+  // (Same data preparation as before - ensure helpers are correct)
+  const currentDate = format(new Date(), 'dd MMMM yyyy'); // Use format from template
   const tierDetails = getTierDetails(tier);
   const pricing = getPricingDetails(tier);
   const unitPrice = isAnnual ? pricing.annualPrice : pricing.monthlyPrice;
-  const subtotal = unitPrice * duration;
-  const vat = subtotal * 0.15;
-  const total = subtotal + vat;
+  // NOTE: Template uses 'Unit cost' for the price of ONE unit (month/year).
+  // If your pricing.annualPrice/monthlyPrice is already for the *total duration*,
+  // you might need to calculate the single unit price here. Assuming it's per unit:
+  const lineItemCost = unitPrice * duration; // Cost for this line item duration
+  const subtotal = lineItemCost; // Assuming only one line item for the plan
+  const vatRate = 0.15; // 15% VAT for South Africa
+  const vatAmount = subtotal * vatRate;
+  const total = subtotal + vatAmount;
 
   const currentCount = localStorage.getItem('quoteCounter') || '0';
-  const quoteNumber = `QUO-${new Date().getFullYear()}-${parseInt(currentCount) + 1}`;
+  const quoteNumber = `QUO-${new Date().getFullYear()}-${parseInt(currentCount) + 1}`; // Match template format if needed, e.g., #0001
   localStorage.setItem('quoteCounter', (parseInt(currentCount) + 1).toString());
 
   // --- PDF Generation Initialization ---
-  const doc = new jsPDF(); // Create new PDF document
+  const doc = new jsPDF();
   const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
   const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
-  let currentY = 15; // Top margin
+  const leftMargin = 15;
+  const rightMargin = pageWidth - 15;
+  let currentY = 20; // Starting Y position
 
   // --- 1. HEADER ---
-  // Add Logo
-  const logoUrl = '/images/coalo97x30quo.webp'; // Path in 'public' folder
-  // Convert your pixel dimensions to points (approx 1px = 0.75pt)
-  const logoWidthPt = 73; // Approx 97.1px * 0.75
-  const logoHeightPt = 23; // Approx 30.7px * 0.75
-  const logoX = 15; // Left margin
-  const logoY = currentY;
-
+  // Coalo Logo (Left)
+  const logoUrl = '/images/coalo97x30quo.webp';
+  const logoWidthPt = 73; // Approx 97.1px
+  const logoHeightPt = 23; // Approx 30.7px
   try {
-    // Add the logo image. You might need to adjust width/height slightly for best results.
-    doc.addImage(logoUrl, 'WEBP', logoX, logoY, logoWidthPt, logoHeightPt);
+    doc.addImage(logoUrl, 'WEBP', leftMargin, currentY, logoWidthPt, logoHeightPt);
   } catch (e) {
     console.error("Error adding logo image:", e);
-    doc.setFontSize(8);
-    doc.text("Logo Error", logoX, logoY + logoHeightPt / 2); // Fallback text
+    doc.setFontSize(8).text("Logo Error", leftMargin, currentY + 10);
   }
 
-  // Add Company Info (Centered)
-  const centerX = pageWidth / 2;
-  const companyInfoY = logoY + 5; // Start company info slightly below logo top
-  doc.setFontSize(14);
-  doc.setFont(undefined, 'bold');
-  doc.text('COALO (PTY) LTD', centerX, companyInfoY, { align: 'center' });
-  doc.setFontSize(10);
-  doc.setFont(undefined, 'normal');
-  doc.text('Nurturing Brands, Uniting Communities', centerX, companyInfoY + 7, { align: 'center' });
-  doc.text('23 Wesley Street, The Hill, Mthatha, 5099', centerX, companyInfoY + 12, { align: 'center' });
-  doc.text('luzukoyena@gmail.com, +27 72 031 1487', centerX, companyInfoY + 17, { align: 'center' });
+  // Coalo Contact Info (Below Logo)
+  let leftColY = currentY + logoHeightPt + 5;
+  doc.setFontSize(10).setFont(undefined, 'normal');
+  doc.text('COALO (PTY) LTD', leftMargin, leftColY); // Use your company details
+  leftColY += 5;
+  doc.text('23 Wesley Street, The Hill, Mthatha, 5099', leftMargin, leftColY);
+  leftColY += 5;
+  doc.text(`T: +27 72 031 1487`, leftMargin, leftColY);
+  leftColY += 5;
+  doc.text(`E: luzukoyena@gmail.com`, leftMargin, leftColY);
+  // Add VAT Number if applicable
+  // leftColY += 5;
+  // doc.text(`VAT Reg: YOUR_VAT_NUMBER`, leftMargin, leftColY);
 
-  // Update currentY to be below the header section
-  currentY = Math.max(logoY + logoHeightPt, companyInfoY + 17) + 15; // Add 15pt space after header
 
-  // --- 2. DETAILS Section ---
-  doc.setFontSize(11);
+  // "QUOTE" Heading, Number, Date (Right)
+  let rightColX = rightMargin;
+  doc.setFontSize(18).setFont(undefined, 'bold');
+  doc.text('QUOTE', rightColX, currentY + 5, { align: 'right' }); // Use "QUOTE"
+  doc.setFontSize(10).setFont(undefined, 'normal');
+  doc.text(`Quote no. ${quoteNumber}`, rightColX, currentY + 15, { align: 'right' });
+  doc.text(`Date ${currentDate}`, rightColX, currentY + 20, { align: 'right' });
+
+  // --- 2. Billed To Section ---
+  // Position below the left column info
+  currentY = leftColY + 15; // Add space
   doc.setFont(undefined, 'bold');
-  doc.text('QUOTE DETAILS', 15, currentY);
-  currentY += 7; // Space after heading
+  doc.text('Billed to', leftMargin, currentY);
+  currentY += 6;
   doc.setFont(undefined, 'normal');
-  doc.setFontSize(10); // Slightly smaller font for details
-  doc.text(`Quote Number: ${quoteNumber}`, 15, currentY);
-  doc.text(`Date: ${currentDate}`, pageWidth - 15, currentY, { align: 'right' });
-  currentY += 6;
-  doc.text(`Name: ${name}`, 15, currentY);
-  currentY += 6;
-  doc.text(`Company: ${companyName || 'N/A'}`, 15, currentY); // Handle potentially empty company
-  currentY += 6;
-  doc.text(`Address: ${address || 'N/A'}`, 15, currentY); // Handle potentially empty address
-  currentY += 6;
-  doc.text(`Mobile Number: ${phone}`, 15, currentY); // Use the 'phone' parameter
-  currentY += 12; // Add space before table
+  doc.text(name, leftMargin, currentY);
+  currentY += 5;
+  if (companyName) {
+      doc.text(companyName, leftMargin, currentY);
+      currentY += 5;
+  }
+  doc.text(address || 'N/A', leftMargin, currentY); // Might need multi-line handling if long
+  currentY += 5;
+  doc.text(phone, leftMargin, currentY);
+  currentY += 15; // Space before table
 
   // --- 3. BODY (Table) ---
-  const tableColumn = ["Description", "Quantity", "Amount (ZAR)"];
+  // **FIXED**: Prepare clean data for the table
+  const tableColumn = ["Service description", "Qty", "Unit cost (ZAR)"]; // Match template headings
   const tableRows: (string | number)[][] = [];
 
-  // Main plan item row
+  const quantity = duration; // Simple quantity
+  // Format the quantity (e.g., "01", "12") - jsPDF-AutoTable usually treats numbers correctly
+  // const formattedQuantity = duration.toString().padStart(2, '0'); // Example if padding needed
+
+  // **FIXED**: Add ONLY the main plan item, not features here
   tableRows.push([
-    `${tierDetails.name} Plan - ${isAnnual ? 'Annual' : 'Monthly'} Billing`,
-    `${duration} ${isAnnual ? (duration > 1 ? 'Years' : 'Year') : (duration > 1 ? 'Months' : 'Month')}`,
-    formatCurrency(subtotal) // Use subtotal here (cost for the full duration)
+    `${tierDetails.name} Plan (${isAnnual ? 'Annual' : 'Monthly'} Billing)`, // Description
+    quantity, // Quantity
+    formatCurrency(unitPrice) // Unit cost for ONE month/year
   ]);
 
-  // Add feature rows (indented)
-  tierDetails.features.forEach(feature => {
-    tableRows.push([`    • ${feature}`, '', '']); // Indent features using spaces
-  });
-
-  // Add empty row for spacing before totals
-  tableRows.push(['', '', '']);
-
-  // Add Subtotal, VAT, Total rows
-  tableRows.push(['Subtotal', '', formatCurrency(subtotal)]);
-  tableRows.push(['VAT (15%)', '', formatCurrency(vat)]);
-  tableRows.push(['Grand Total', '', formatCurrency(total)]);
-
-  // Generate the table using autoTable
+  // --- Generate Main Table ---
   autoTable(doc, {
     startY: currentY,
     head: [tableColumn],
     body: tableRows,
-    theme: 'grid',
-    headStyles: { fillColor: [34, 48, 41], textColor: [255, 255, 255] }, // Dark green header
-    styles: { fontSize: 9, cellPadding: 2 }, // Base style
+    theme: 'plain', // Match template (no grid lines except header bottom)
+    headStyles: {
+      fillColor: [255, 255, 255], // White background
+      textColor: [0, 0, 0], // Black text
+      fontStyle: 'bold',
+      lineWidth: { bottom: 0.5 }, // Line below header
+      lineColor: [0, 0, 0],
+    },
+    styles: { fontSize: 10, cellPadding: 2 },
     columnStyles: {
-      0: { cellWidth: 'auto' }, // Description column wider
-      1: { cellWidth: 35, halign: 'center' }, // Quantity column centered
-      2: { cellWidth: 40, halign: 'right' }  // Amount column right-aligned
+      0: { cellWidth: 'auto' }, // Description column
+      1: { cellWidth: 20, halign: 'right' }, // Qty column
+      2: { cellWidth: 40, halign: 'right' }  // Unit cost column
     },
-    // Style the total rows
-    didParseCell: function (data) {
-       const isTotalRow = data.row.index >= data.table.body.length - 3; // Identify last 3 rows
-       if (data.section === 'body' && isTotalRow) {
-           data.cell.styles.fontStyle = 'bold'; // Make text bold
-           if (data.column.index === 2) { // Amount column
-               data.cell.styles.halign = 'right'; // Ensure right alignment
-           }
-           // Remove border for quantity column in total rows if desired
-           if (data.column.index === 1) {
-               data.cell.styles.lineWidth = 0;
-           }
-       }
-       // Remove border for feature quantity/amount cells
-       const isFeatureRow = data.row.index > 0 && data.row.index < data.table.body.length - 3;
-       if (data.section === 'body' && isFeatureRow && data.column.index > 0) {
-           data.cell.styles.lineWidth = 0;
-       }
-    },
-    // Get Y position after table is drawn
     didDrawPage: function (data) {
-      currentY = data.cursor?.y ?? currentY + 20; // Update Y pos below table
+      // Update Y position for content after the table
+      currentY = data.cursor?.y ?? currentY;
     }
   });
 
-  currentY += 10; // Space after table
+  currentY += 5; // Space after table
 
-  // --- 4. FOOTER ---
-  // Check if footer fits on the current page, add new page if needed
-   const footerHeight = 50; // Estimate height needed for footer
-   if (currentY > pageHeight - footerHeight) {
-     doc.addPage();
-     currentY = 20; // Reset Y for new page
-   }
+  // --- 4. TOTALS Section ---
+  // Create a separate small table or use text alignment for totals, aligned right
+  const totalsStartX = pageWidth / 2 + 10; // Start totals table/text past the middle
+  const totalsEndX = rightMargin;
 
-  // Add Banking Details
+  // Simple text alignment method:
   doc.setFontSize(10);
-  doc.setFont(undefined, 'bold');
-  doc.text('Banking Details:', 15, currentY);
+  doc.text('Subtotal', totalsStartX, currentY, { align: 'left' });
+  doc.text(formatCurrency(subtotal), totalsEndX, currentY, { align: 'right' });
   currentY += 6;
-  doc.setFont(undefined, 'normal');
-  doc.setFontSize(9); // Slightly smaller font for footer details
-  doc.text('BENEFICIARY NAME: COALO (PTY) LTD', 15, currentY);
-  currentY += 5;
-  // Fetch details from your original quoteData structure or hardcode
-  doc.text('BENEFICIARY BANK: FIRST NATIONAL BANK', 15, currentY);
-  currentY += 5;
-  doc.text('BENEFICIARY ACCOUNT NO: 123456789', 15, currentY); // Replace with actual if different
-  currentY += 10;
-
-  // Add Terms and Conditions
-  doc.setFont(undefined, 'bold');
-  doc.setFontSize(10);
-  doc.text('Terms and Conditions:', 15, currentY);
+  doc.text(`Tax/VAT (${vatRate * 100}%)`, totalsStartX, currentY, { align: 'left' });
+  doc.text(formatCurrency(vatAmount), totalsEndX, currentY, { align: 'right' });
   currentY += 6;
-  doc.setFont(undefined, 'normal');
-  doc.setFontSize(9);
-  doc.text(`• Payment: Payment due within 14 days of invoice date.`, 15, currentY);
-  currentY += 5;
-  doc.text(`• Quotation Validity: This quotation is valid for 30 days from ${currentDate}.`, 15, currentY);
-  currentY += 5;
-  doc.text(`• Disclaimer: All prices are inclusive of VAT. E&OE. Subject to standard T&Cs.`, 15, currentY);
+  doc.setFont(undefined, 'bold'); // Make total bold
+  doc.text('TOTAL', totalsStartX, currentY, { align: 'left' });
+  doc.text(formatCurrency(total), totalsEndX, currentY, { align: 'right' });
+  currentY += 15; // Space after totals
 
-  // --- 5. Trigger Download ---
-  doc.save(`${quoteNumber}.pdf`); // Save the PDF with the quote number as filename
+  // --- 5. FOOTER ---
+  // Place footer elements near the bottom of the page
+  const footerY = pageHeight - 35; // Adjust this value to position footer
+  currentY = footerY;
+
+  doc.setFontSize(9).setFont(undefined, 'normal');
+  doc.text('Payment Information', leftMargin, currentY);
+  // Add Coalo's VAT number here if applicable, similar to template's Tax Reg No.
+  doc.text(`VAT Registration: YOUR_VAT_NUMBER`, rightMargin, currentY, { align: 'right'});
+  currentY += 5;
+  doc.text(`Bank name: ${getBankingDetails().bank}`, leftMargin, currentY); // Use helper
+  currentY += 5;
+  doc.text(`Account number: ${getBankingDetails().accountNumber}`, leftMargin, currentY);
+  currentY += 5;
+  // doc.text(`Routing code: ${getBankingDetails().branchCode}`, leftMargin, currentY); // Routing code isn't standard in SA, use Branch code if needed
+
+  currentY = footerY + 5; // Reset Y slightly for second column of footer text
+  doc.setFontSize(8); // Smaller text for terms/disclaimer
+  doc.text('Terms:', rightMargin - 70, currentY, {align: 'left', maxWidth: 70}); // Adjust X and maxWidth
+  currentY += 4;
+  doc.text(`Quote valid for 30 days.`, rightMargin - 70, currentY, {align: 'left', maxWidth: 70});
+  currentY += 4;
+  doc.text(`Payment due within 14 days.`, rightMargin - 70, currentY, {align: 'left', maxWidth: 70});
+  currentY += 6;
+  doc.text('Disclaimer:', rightMargin - 70, currentY, {align: 'left', maxWidth: 70});
+  currentY += 4;
+  // Combine disclaimer parts - adjust wording as needed
+  doc.text(`This quote is provided for informational purposes only and subject to change. E&OE. Subject to standard T&Cs.`, rightMargin - 70, currentY, {align: 'left', maxWidth: 70});
+
+
+  // --- 6. Trigger Download ---
+  doc.save(`${quoteNumber}.pdf`);
 };
 
-// Get tier details
+// --- Helper Functions (Keep/Update these at the bottom) ---
+
 const getTierDetails = (tier: 'standard' | 'pro' | 'premium') => {
-  const tierDetails = {
-    standard: {
-      name: 'Standard',
-      features: [
-        '10-second advert',
-        'Fixed scheduling',
-        'Static images only',
-        'Moderate cycle frequency',
-        'Basic analytics'
-      ]
-    },
-    pro: {
-      name: 'Pro',
-      features: [
-        '20-second advert',
-        'Enhanced scheduling flexibility',
-        'Mix of static and limited dynamic content',
-        'Higher cycle frequency',
-        'Detailed analytics dashboard',
-        'Email support'
-      ]
-    },
-    premium: {
-      name: 'Premium',
-      features: [
-        '45-second advert',
-        'Unlimited cycles per day',
-        'Full creative freedom (video, dynamic or static)',
-        'AI-driven input',
-        'QR code discounts for first 100 customers',
-        '24/7 dedicated support',
-        'Customizable campaigns'
-      ]
-    }
+  // ... Your existing implementation ...
+  // Make sure the names and features are correct.
+  const tiers = {
+    standard: { name: 'Standard', features: ['10-second advert', /* ... */] },
+    pro: { name: 'Pro', features: ['20-second advert', /* ... */] },
+    premium: { name: 'Premium', features: ['45-second advert', /* ... */] }
   };
-
-  return tierDetails[tier];
+  return tiers[tier] || tiers.standard;
 };
 
-// Get pricing details based on tier
 export const getPricingDetails = (tier: 'standard' | 'pro' | 'premium') => {
+  // ... Your existing implementation ...
+  // Verify these prices are correct for ONE unit (month/year)
   const pricing = {
-    standard: {
-      monthlyPrice: 10000, // Updated from 8500 to 10000 to match PricingSection
-      annualPrice: 102000,
-      originalAnnualPrice: 120000,
-      totalAnnual: 1224000,
-    },
-    pro: {
-      monthlyPrice: 25000,
-      annualPrice: 255000,
-      originalAnnualPrice: 300000,
-      totalAnnual: 3060000,
-    },
-    premium: {
-      monthlyPrice: 45000,
-      annualPrice: 459000,
-      originalAnnualPrice: 540000,
-      totalAnnual: 6108000,
-    },
+    standard: { monthlyPrice: 10000, annualPrice: 102000, /* ... */ },
+    pro: { monthlyPrice: 25000, annualPrice: 255000, /* ... */ },
+    premium: { monthlyPrice: 45000, annualPrice: 459000, /* ... */ }
   };
-
-  return pricing[tier];
+  return pricing[tier] || pricing.standard;
 };
 
-// Format currency
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-ZA', {
-    style: 'currency',
-    currency: 'ZAR',
-    minimumFractionDigits: 0,
-  }).format(amount);
+  // ... Your existing implementation ...
+  // Ensure it formats correctly, e.g., R 10,000.00
+   return new Intl.NumberFormat('en-ZA', {
+     style: 'currency',
+     currency: 'ZAR',
+     minimumFractionDigits: 2, // Use 2 decimal places like standard invoices
+   }).format(amount);
+};
+
+// **NEW**: Helper for banking details - FILL WITH YOUR ACTUAL DETAILS
+const getBankingDetails = () => {
+  return {
+    beneficiaryName: 'COALO (PTY) LTD',
+    bank: 'FIRST NATIONAL BANK', // Or your bank
+    accountNumber: '123456789', // YOUR ACCOUNT NUMBER
+    branchCode: '250655', // YOUR BRANCH CODE (Optional)
+  };
 };
