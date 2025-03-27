@@ -1,8 +1,17 @@
 
 import { useRevealAnimation } from '../utils/animations';
+import { useEffect, useState } from 'react';
 
 const Hero = () => {
   const { ref, isIntersecting } = useRevealAnimation();
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Preload the hero image
+  useEffect(() => {
+    const img = new Image();
+    img.src = '/images/treebillboard.webp';
+    img.onload = () => setImageLoaded(true);
+  }, []);
 
   return (
     <section 
@@ -16,8 +25,15 @@ const Hero = () => {
         <img 
           src="/images/treebillboard.webp" 
           alt="Coalō digital billboard" 
-          className="w-full h-full object-cover object-center"
+          className={`w-full h-full object-cover object-center transition-opacity duration-300 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          fetchpriority="high"
         />
+        {/* Placeholder color while image loads */}
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-gray-200"></div>
+        )}
       </div>
       
       <div className="container-custom relative z-10">
@@ -31,7 +47,7 @@ const Hero = () => {
             <span className="text-[#54585a]">Uniting Communities</span>
           </h1>
           
-          <p className="text-lg md:text-xl text-coalo-earth mb-8 max-w-2xl">
+          <p className="text-lg md:text-xl text-[#8a7968] mb-8 max-w-2xl">
             We combine AI-driven technology with strategic outdoor advertising to foster growth and meaningful connections in urban spaces.
           </p>
           
