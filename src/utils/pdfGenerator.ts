@@ -16,7 +16,7 @@ export const generateQuotePDF = (
 ): void => { // Return type is void
 
   try { // Add a try-catch block for better error handling
-    console.log(`Generating PDF for: ${name}, Tier: ${tier}, Duration: ${duration} ${isAnnual ? 'year(s)' : 'month(s)'}`);
+    console.log(`Generating PDF for: ${name}, Tier: ${tier}, Duration: ${Number(duration)} ${isAnnual ? 'year(s)' : 'month(s)'}`);
 
     // --- 1. Data Preparation ---
     const currentDate = format(new Date(), 'dd MMMM yyyy'); // Format like template
@@ -103,7 +103,7 @@ export const generateQuotePDF = (
     const addressLines = doc.splitTextToSize(address || '[No Address Provided]', (pageWidth / 2) - leftMargin - 5); // Max width approx half page minus margins
     doc.text(addressLines, leftMargin, currentY);
     currentY += (addressLines.length * 4); // Adjust Y based on number of lines
-    doc.text(phone || '[No Phone Provided]', leftMargin, currentY); // Use the 'phone' parameter with fallback
+    doc.text(`${phone || '[No Phone Provided]'}`, leftMargin, currentY); // Ensure phone is string
     currentY += 15; // Space before table
 
     // --- 5. Body Table ---
@@ -182,7 +182,7 @@ export const generateQuotePDF = (
     currentY += 5;
     doc.text(`Bank: ${bankingDetails.bank}`, leftMargin, currentY);
     currentY += 4;
-    doc.text(`Account No: ${bankingDetails.accountNumber}`, leftMargin, currentY);
+    doc.text(`Account No: ${bankingDetails.accountNumber}`, leftMargin, currentY); // Keep template literal, ensure accountNumber itself is string if not already
     currentY += 4;
     doc.text(`Beneficiary: ${bankingDetails.beneficiaryName}`, leftMargin, currentY);
 
@@ -254,8 +254,8 @@ export const formatCurrency = (amount: number): string => {
 const getBankingDetails = () => {
   return {
     beneficiaryName: 'COALO (PTY) LTD',
-    bank: 'FIRST NATIONAL BANK', // e.g., FNB, Standard Bank, etc.
-    accountNumber: '1234567890', // Coalo's ACTUAL Account Number
+    bank: 'FIRST NATIONAL BANK', // Or your bank
+    accountNumber: '1234567890', // YOUR ACCOUNT NUMBER // <<<--- ENSURE THIS IS A STRING
     // branchCode: '250655', // Optional: Add if needed
   };
 };
