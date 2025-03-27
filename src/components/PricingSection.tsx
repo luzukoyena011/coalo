@@ -109,7 +109,7 @@ const PricingSection = () => {
                     {formatCurrency(billingCycle === 'monthly' ? tier.monthlyPrice : tier.annualPrice)}
                   </span>
                   <span className="text-coalo-earth ml-2">
-                    /{billingCycle === 'monthly' ? 'month' : 'year'}
+                    /month
                   </span>
                 </div>
                 
