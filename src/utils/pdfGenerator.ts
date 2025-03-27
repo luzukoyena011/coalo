@@ -158,7 +158,7 @@ const getTierDetails = (tier: 'standard' | 'pro' | 'premium') => {
 export const getPricingDetails = (tier: 'standard' | 'pro' | 'premium') => {
   const pricing = {
     standard: {
-      monthlyPrice: 8500,
+      monthlyPrice: 10000, // Updated from 8500 to 10000 to match PricingSection
       annualPrice: 102000,
       originalAnnualPrice: 120000,
       totalAnnual: 1224000,
