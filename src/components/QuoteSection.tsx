@@ -1,281 +1,414 @@
 
-// src/components/QuoteSection.tsx (Illustrative Example - ADAPT TO YOUR CODE)
+import { useState } from 'react';
+import { useRevealAnimation } from '../utils/animations';
+import { QuoteFormData } from '../types';
+import { useToast } from '@/hooks/use-toast';
+import { generateQuotePDF, getPricingDetails, formatCurrency } from '../utils/pdfGenerator';
+import { Check, ChevronDown, ChevronUp, MinusCircle, PlusCircle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Checkbox } from './ui/checkbox';
+import { Form, FormControl, FormField, FormItem, FormLabel } from './ui/form';
+import { useForm } from 'react-hook-form';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Loader } from '@googlemaps/js-api-loader';
+const tierDetails = {
+  standard: {
+    name: 'Standard',
+    features: [
+      '10-second advert',
+      'Fixed scheduling',
+      'Static images only',
+      'Moderate cycle frequency',
+      'Basic analytics'
+    ]
+  },
+  pro: {
+    name: 'Pro',
+    features: [
+      '20-second advert',
+      'Enhanced scheduling flexibility',
+      'Mix of static and limited dynamic content',
+      'Higher cycle frequency',
+      'Detailed analytics dashboard',
+      'Email support'
+    ]
+  },
+  premium: {
+    name: 'Premium',
+    features: [
+      '45-second advert',
+      'Unlimited cycles per day',
+      'Full creative freedom (video, dynamic or static)',
+      'AI-driven input',
+      'QR code discounts for first 100 customers',
+      '24/7 dedicated support',
+      'Customizable campaigns'
+    ]
+  }
+};
 
-// --- Assume these UI components exist (replace with your actual imports) ---
-import { Button } from "@/components/ui/button"; // Example
-import { Input } from "@/components/ui/input";   // Example
-import { Label } from "@/components/ui/label";   // Example
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Example
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"; // Example
-// -----------------------------------------------------------------------
-
-import { generateQuotePDF } from '../utils/pdfGenerator'; // Adjust path if needed
-
-// Define type for form data state
-interface QuoteFormData {
-  name: string;
-  companyName: string;
-  phone: string;
-  address: string; // This will hold the autocomplete result
-  tier: 'standard' | 'pro' | 'premium';
-  duration: number;
-  isAnnual: boolean;
-}
-
-function QuoteSection() {
-  // State for the form data
+const QuoteSection = () => {
   const [formData, setFormData] = useState<QuoteFormData>({
     name: '',
     companyName: '',
+    email: '',
     phone: '',
-    address: '',
     tier: 'standard',
-    duration: 1, // Default duration
-    isAnnual: true, // Default billing cycle
+    address: '', // Added address field
+    duration: 1, // Added duration field
   });
+  const [isAnnual, setIsAnnual] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const headerReveal = useRevealAnimation();
+  const formReveal = useRevealAnimation();
+  const form = useForm();
 
-  // State for Google Maps script loading
-  const [isGoogleScriptLoaded, setIsGoogleScriptLoaded] = useState(false);
-
-  // Refs for Autocomplete
-  const addressInputRef = useRef<HTMLInputElement>(null); // Ref for the address input element
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null); // Ref for the Autocomplete instance
-
-  // --- Google Script Loader Effect ---
-  useEffect(() => {
-    const loader = new Loader({
-      apiKey: "YOUR_GOOGLE_API_KEY", // <<<--- PASTE YOUR API KEY HERE
-      version: "weekly",
-      libraries: ["places"], // Specify the 'places' library
-    });
-
-    loader.load().then(() => {
-      console.log("Google Maps script loaded.");
-      setIsGoogleScriptLoaded(true);
-    }).catch(e => {
-      console.error("Error loading Google Maps script:", e);
-      // Handle script loading error (e.g., show message to user)
-    });
-  }, []); // Runs once on component mount
-
-  // --- Initialize Autocomplete Effect ---
-  useEffect(() => {
-    // Run only after script is loaded AND the input element exists AND autocomplete isn't already attached
-    if (isGoogleScriptLoaded && addressInputRef.current && !autocompleteRef.current) {
-      // Create the Autocomplete instance
-      const autocomplete = new window.google.maps.places.Autocomplete(
-        addressInputRef.current,
-        {
-          types: ['address'], // Suggest only full street addresses
-          componentRestrictions: { country: 'za' }, // Restrict to South Africa
-          fields: ['formatted_address'], // Get the formatted address string
-        }
-      );
-      autocompleteRef.current = autocomplete; // Store instance
-
-      // Add listener for when the user selects a place
-      autocomplete.addListener('place_changed', () => {
-        const place = autocomplete.getPlace();
-        console.log("Place Selected by Autocomplete:", place);
-
-        if (place && place.formatted_address) {
-          // Update the address in the form state
-          setFormData(prev => ({
-            ...prev,
-            address: place.formatted_address || ''
-          }));
-        } else {
-          console.log('Autocomplete selection did not provide formatted address.');
-          // Keep manually typed text if selection fails? Optional.
-          // setFormData(prev => ({ ...prev, address: addressInputRef.current?.value || '' }));
-        }
-      });
-    }
-
-    // Optional cleanup (might be needed depending on component lifecycle)
-    // return () => {
-    //   if (autocompleteRef.current) {
-    //     // Attempts to remove listeners associated with the autocomplete instance
-    //     window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
-    //     console.log("Autocomplete listeners cleared.");
-    //   }
-    // };
-
-  }, [isGoogleScriptLoaded]); // Dependency: Re-run if script load status changes
-
-
-  // --- Form Input Change Handler ---
-  // Adapt this to how you handle state changes (e.g., if using react-hook-form)
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  }, []);
-
-  const handleSelectChange = useCallback((name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-  }, []);
-
-  const handleRadioChange = useCallback((name: string, value: string) => {
-      if (name === 'billingCycle') {
-          setFormData(prev => ({ ...prev, isAnnual: value === 'annual' }));
-      } else if (name === 'duration') {
-          // Assuming radio buttons for duration like '1', '6', '12' months/years
-          setFormData(prev => ({ ...prev, duration: parseInt(value, 10) || 1 }));
-      } else {
-         setFormData(prev => ({ ...prev, [name]: value }));
-      }
-  }, []);
-
-
-  // --- Form Submission Handler ---
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Submitting Form Data:", formData); // Debug: Check data before sending
-
-    // Validate required fields (add more validation as needed)
-    if (!formData.name || !formData.phone || !formData.address) {
-        alert("Please fill in Name, Phone, and Address.");
-        return;
-    }
-
-    // Call the PDF generator function with the current form state
-    generateQuotePDF(
-      formData.tier,
-      formData.name,
-      formData.companyName,
-      formData.phone, // Pass the phone string
-      formData.duration, // Pass the duration number
-      formData.isAnnual,
-      formData.address // Pass the address string (potentially from Autocomplete)
-    );
   };
 
-  // --- JSX Structure (Example - Adapt to your UI) ---
+  const handleTierSelect = (tier: 'standard' | 'pro' | 'premium') => {
+    setFormData(prev => ({ ...prev, tier }));
+  };
+
+  const handleDurationChange = (increment: boolean) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      duration: increment 
+        ? Math.min(prev.duration + 1, 10) 
+        : Math.max(prev.duration - 1, 1) 
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      // Generate PDF quote
+      const pdfUrl = generateQuotePDF(
+        formData.tier, 
+        formData.name, 
+        formData.companyName, 
+        formData.duration, 
+        isAnnual,
+        formData.address
+      );
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Quote generated!",
+        description: "Your quote has been prepared successfully.",
+        duration: 5000,
+      });
+      
+      // In a real app, you would either download the PDF or send it via email
+      console.log('Quote PDF URL:', pdfUrl);
+      
+      // Reset form
+      setFormData({
+        name: '',
+        companyName: '',
+        email: '',
+        phone: '',
+        tier: 'standard',
+        address: '',
+        duration: 1,
+      });
+    } catch (error) {
+      console.error('Error generating quote:', error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again later.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const selectedPricing = getPricingDetails(formData.tier);
+  const cycleDuration = isAnnual ? 'years' : 'months';
+
   return (
-    <section id="get-quote" className="py-12 md:py-24"> {/* Example section */}
-      <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-8">Get Your Quote</h2>
-        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-4">
-          {/* Name */}
+    <section id="quote" className="py-20 md:py-28 bg-white">
+      <div className="container-custom">
+        <div 
+          ref={headerReveal.ref} 
+          className={`text-center mb-16 transition-all duration-700 ${headerReveal.isIntersecting ? 'opacity-100' : 'opacity-0'}`}
+        >
+          <h2 className="section-title">Get a Quote</h2>
+          <p className="section-subtitle">
+            Select your preferred advertising tier and receive a customized quote instantly.
+          </p>
+        </div>
+
+        <div 
+          ref={formReveal.ref}
+          className={`grid grid-cols-1 lg:grid-cols-2 gap-12 transition-all duration-700 delay-300 ${formReveal.isIntersecting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
+        >
           <div>
-            <Label htmlFor="name">Full Name</Label>
-            <Input
-              id="name"
-              name="name"
-              type="text"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+            <h3 className="text-xl font-semibold text-coalo-stone mb-6">Select Your Advertising Tier</h3>
+            
+            <div className="mb-6">
+              <Select 
+                onValueChange={(value) => handleTierSelect(value as 'standard' | 'pro' | 'premium')}
+                defaultValue={formData.tier}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a pricing tier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="standard">Standard Plan</SelectItem>
+                  <SelectItem value="pro">Pro Plan</SelectItem>
+                  <SelectItem value="premium">Premium Plan</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="p-6 rounded-xl border-2 border-coalo-moss bg-coalo-cream/10 mb-8">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-lg font-semibold text-coalo-stone">{tierDetails[formData.tier].name}</h4>
+              </div>
+              
+              <ul className="space-y-2">
+                {tierDetails[formData.tier].features.map((feature, index) => (
+                  <li key={index} className="flex items-start">
+                    <Check className="w-5 h-5 text-coalo-moss mt-0.5 mr-2 flex-shrink-0" />
+                    <span className="text-coalo-stone">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div className="mb-8">
+              <h4 className="text-lg font-semibold text-coalo-stone mb-3">Billing Cycle</h4>
+              <div className="flex items-center gap-2 mb-2">
+                <Checkbox 
+                  id="monthly" 
+                  checked={!isAnnual} 
+                  onCheckedChange={() => setIsAnnual(false)}
+                />
+                <label htmlFor="monthly" className="text-coalo-stone cursor-pointer">
+                  Monthly Billing
+                </label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox 
+                  id="annual" 
+                  checked={isAnnual} 
+                  onCheckedChange={() => setIsAnnual(true)}
+                />
+                <label htmlFor="annual" className="text-coalo-stone cursor-pointer">
+                  Annual Billing <span className="text-coalo-clay">(Save 15%)</span>
+                </label>
+              </div>
+            </div>
 
-          {/* Company Name (Optional) */}
-          <div>
-            <Label htmlFor="companyName">Company Name (Optional)</Label>
-            <Input
-              id="companyName"
-              name="companyName"
-              type="text"
-              value={formData.companyName}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          {/* Phone */}
-          <div>
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input
-              id="phone"
-              name="phone"
-              type="tel" // Use type="tel" for phone numbers
-              value={formData.phone}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          {/* Address with Autocomplete */}
-          <div>
-            <Label htmlFor="address">Address</Label>
-            <Input
-              ref={addressInputRef} // Attach the ref here
-              id="address"
-              name="address"
-              type="text"
-              placeholder="Start typing your address..."
-              value={formData.address} // Controlled by state
-              onChange={handleInputChange} // Handles manual typing
-              required
-              disabled={!isGoogleScriptLoaded} // Optionally disable until script loads
-            />
-             {!isGoogleScriptLoaded && <p className="text-xs text-muted-foreground">Loading address suggestions...</p>}
-          </div>
-
-          {/* Tier Selection (Example using Select) */}
-           <div>
-             <Label htmlFor="tier">Select Plan</Label>
-             <Select
-                name="tier"
-                value={formData.tier}
-                onValueChange={(value) => handleSelectChange('tier', value)}
-             >
-               <SelectTrigger id="tier">
-                 <SelectValue placeholder="Select a plan" />
-               </SelectTrigger>
-               <SelectContent>
-                 <SelectItem value="standard">Standard</SelectItem>
-                 <SelectItem value="pro">Pro</SelectItem>
-                 <SelectItem value="premium">Premium</SelectItem>
-               </SelectContent>
-             </Select>
-           </div>
-
-          {/* Billing Cycle (Example using RadioGroup) */}
-           <div>
-                <Label>Billing Cycle</Label>
-                <RadioGroup
-                    name="billingCycle"
-                    value={formData.isAnnual ? 'annual' : 'monthly'}
-                    onValueChange={(value) => handleRadioChange('billingCycle', value)}
-                    className="flex space-x-4 mt-2"
+            <div className="mb-8">
+              <h4 className="text-lg font-semibold text-coalo-stone mb-3">Broadcast Duration</h4>
+              <div className="flex items-center space-x-4">
+                <button 
+                  type="button"
+                  onClick={() => handleDurationChange(false)}
+                  disabled={formData.duration <= 1}
+                  className="p-1 rounded-full hover:bg-coalo-cream disabled:opacity-50"
+                  aria-label="Decrease duration"
                 >
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="monthly" id="monthly" />
-                        <Label htmlFor="monthly">Monthly</Label>
+                  <MinusCircle className="w-6 h-6 text-coalo-clay" />
+                </button>
+                
+                <div className="flex items-center justify-center w-16 h-10 border-2 border-coalo-sand rounded-md">
+                  <span className="text-xl font-medium text-coalo-stone">{formData.duration}</span>
+                </div>
+                
+                <button 
+                  type="button"
+                  onClick={() => handleDurationChange(true)}
+                  disabled={formData.duration >= 10}
+                  className="p-1 rounded-full hover:bg-coalo-cream disabled:opacity-50"
+                  aria-label="Increase duration"
+                >
+                  <PlusCircle className="w-6 h-6 text-coalo-moss" />
+                </button>
+                
+                <span className="text-coalo-stone ml-2">
+                  {cycleDuration}
+                </span>
+              </div>
+              <p className="mt-2 text-sm text-coalo-stone/70">
+                Select between 1 and 10 {cycleDuration}
+              </p>
+            </div>
+          </div>
+          
+          <div>
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-coalo-sand/10">
+              <h3 className="text-xl font-semibold text-coalo-stone mb-6">Your Information</h3>
+              
+              <form onSubmit={handleSubmit}>
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-coalo-stone mb-1">
+                      Your Name
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
+                      placeholder="John Doe"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="companyName" className="block text-sm font-medium text-coalo-stone mb-1">
+                      Company Name
+                    </label>
+                    <input
+                      type="text"
+                      id="companyName"
+                      name="companyName"
+                      value={formData.companyName}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
+                      placeholder="Acme Inc."
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="address" className="block text-sm font-medium text-coalo-stone mb-1">
+                      Company Address
+                    </label>
+                    <input
+                      type="text"
+                      id="address"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
+                      placeholder="123 Business St, Johannesburg"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-coalo-stone mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
+                      placeholder="johndoe@example.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-coalo-stone mb-1">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
+                      placeholder="+27 123 456 7890"
+                    />
+                  </div>
+                </div>
+                
+                <div className="bg-coalo-cream/20 p-6 rounded-lg mb-6">
+                  <h4 className="font-medium text-coalo-stone mb-3">Quote Summary</h4>
+                  
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between">
+                      <span className="text-coalo-stone/80">Selected Plan:</span>
+                      <span className="font-medium text-coalo-stone">{tierDetails[formData.tier].name}</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="annual" id="annual" />
-                        <Label htmlFor="annual">Annual (Save ~15%)</Label>
+                    <div className="flex justify-between">
+                      <span className="text-coalo-stone/80">Billing Cycle:</span>
+                      <span className="font-medium text-coalo-stone">{isAnnual ? 'Annual' : 'Monthly'}</span>
                     </div>
-                </RadioGroup>
-           </div>
-
-           {/* Duration (Example - adapt based on how user selects duration) */}
-           <div>
-               <Label htmlFor="duration">Duration ({formData.isAnnual ? 'Years' : 'Months'})</Label>
-               <Input
-                   id="duration"
-                   name="duration"
-                   type="number"
-                   min="1"
-                   value={formData.duration}
-                   onChange={handleInputChange} // Ensure this updates duration number
-                   required
-               />
-           </div>
-
-
-          {/* Submit Button */}
-          <Button type="submit" className="w-full">
-            Generate Quote PDF
-          </Button>
-        </form>
+                    <div className="flex justify-between">
+                      <span className="text-coalo-stone/80">Duration:</span>
+                      <span className="font-medium text-coalo-stone">{formData.duration} {cycleDuration}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-coalo-stone/80">{isAnnual ? 'Annual Price:' : 'Monthly Price:'}</span>
+                      <span className="font-medium text-coalo-stone">
+                        {formatCurrency(isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice)}
+                      </span>
+                    </div>
+                    <div className="border-t border-coalo-sand/30 my-2 pt-2 flex justify-between">
+                      <span className="text-coalo-stone/80">Subtotal:</span>
+                      <span className="font-medium text-coalo-stone">
+                        {formatCurrency((isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice) * formData.duration)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-coalo-stone/80">VAT (15%):</span>
+                      <span className="font-medium text-coalo-stone">
+                        {formatCurrency((isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice) * formData.duration * 0.15)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-lg">
+                      <span className="font-medium text-coalo-stone">Total:</span>
+                      <span className="font-bold text-coalo-clay">
+                        {formatCurrency((isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice) * formData.duration * 1.15)}
+                      </span>
+                    </div>
+                    {isAnnual && (
+                      <div className="mt-2 text-sm text-coalo-clay">
+                        You save: {formatCurrency(selectedPricing.monthlyPrice * 12 * 0.15 * formData.duration)} per {formData.duration > 1 ? `${formData.duration} years` : 'year'}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <p className="text-xs text-coalo-stone/70">
+                    * Quote is valid for 30 days. All prices include VAT.
+                  </p>
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="btn-primary w-full flex justify-center items-center"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Generating Quote...
+                    </>
+                  ) : (
+                    'Generate Quote PDF'
+                  )}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
-}
+};
 
 export default QuoteSection;
