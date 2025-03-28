@@ -71,7 +71,7 @@ export const generateQuotePDF = (
 
     // --- 3. Header Section ---
     // Logo (Left)
-    const logoUrl = '/images/coalo97x30quo.webp';
+    const logoUrl = '/images/coalo24pt.png';
     const logoWidthPt = 66.8902; // User's exact width
     const logoHeightPt = 22.5058; // User's exact height
     try {
