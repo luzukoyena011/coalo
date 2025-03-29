@@ -338,7 +338,6 @@ const QuoteSection = () => {
                       required
                       placeholder="123 Business St, Johannesburg"
                       className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
-                      placeholder="123 Business St, Johannesburg"
                     />
                     <p className="mt-1 text-xs text-coalo-stone/70">
                       Powered by Google Places
