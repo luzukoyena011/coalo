@@ -63,6 +63,48 @@ const QuoteSection = () => {
   const headerReveal = useRevealAnimation();
   const formReveal = useRevealAnimation();
   const form = useForm();
+  const addressInputRef = useRef<HTMLInputElement>(null);
+
+  // Google Maps API initialization
+  useEffect(() => {
+    const initGooglePlaces = async () => {
+      try {
+        // Check if API key is available
+        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+        if (!apiKey) {
+          console.warn("Google Maps API key not found. Address autocomplete will not work.");
+          return;
+        }
+        
+        const loader = new Loader({
+          apiKey,
+          version: "weekly",
+          libraries: ["places"]
+        });
+        
+        const google = await loader.load();
+        
+        if (addressInputRef.current && google.maps.places) {
+          const autocomplete = new google.maps.places.Autocomplete(addressInputRef.current, {
+            types: ['address'],
+            fields: ['formatted_address']
+          });
+          
+          autocomplete.addListener('place_changed', () => {
+            const place = autocomplete.getPlace();
+            if (place.formatted_address) {
+              setFormData(prev => ({ ...prev, address: place.formatted_address }));
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Error initializing Google Places:", error);
+        // Don't show error to user, just fallback to regular input
+      }
+    };
+    
+    initGooglePlaces();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -297,8 +339,12 @@ const QuoteSection = () => {
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
-                      placeholder="123 Business St, Johannesburg"
+                      placeholder="Start typing for address suggestions..."
+                      ref={addressInputRef}
                     />
+                    <p className="mt-1 text-xs text-coalo-stone/70">
+                      Powered by Google Places
+                    </p>
                   </div>
                   
                   <div>
