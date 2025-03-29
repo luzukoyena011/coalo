@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from './ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel } from './ui/form';
 import { useForm } from 'react-hook-form';
-
+import AddressAutocomplete from './AddressAutocomplete';
 
 const tierDetails = {
   standard: {
@@ -54,8 +54,8 @@ const QuoteSection = () => {
     email: '',
     phone: '',
     tier: 'standard',
-    address: '', // Added address field
-    duration: 1, // Added duration field
+    address: '',
+    duration: 1
   });
   const [isAnnual, setIsAnnual] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,6 +67,10 @@ const QuoteSection = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddressChange = (value: string) => {
+    setFormData(prev => ({ ...prev, address: value }));
   };
 
   const handleTierSelect = (tier: 'standard' | 'pro' | 'premium') => {
@@ -87,7 +91,6 @@ const QuoteSection = () => {
     setIsSubmitting(true);
 
     try {
-      // Generate PDF quote
       const pdfUrl = generateQuotePDF(
         formData.tier, 
         formData.name,
@@ -97,7 +100,6 @@ const QuoteSection = () => {
         isAnnual,
         formData.address
       );
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
@@ -106,10 +108,8 @@ const QuoteSection = () => {
         duration: 5000,
       });
       
-      // In a real app, you would either download the PDF or send it via email
       console.log('Quote PDF URL:', pdfUrl);
       
-      // Reset form
       setFormData({
         name: '',
         companyName: '',
@@ -289,15 +289,13 @@ const QuoteSection = () => {
                     <label htmlFor="address" className="block text-sm font-medium text-coalo-stone mb-1">
                       Company Address
                     </label>
-                    <input
-                      type="text"
+                    <AddressAutocomplete
                       id="address"
-                      name="address"
                       value={formData.address}
-                      onChange={handleChange}
+                      onChange={handleAddressChange}
                       required
-                      className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
                       placeholder="123 Business St, Johannesburg"
+                      className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
                     />
                   </div>
                   
