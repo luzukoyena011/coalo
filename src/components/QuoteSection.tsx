@@ -1,5 +1,5 @@
-
-import { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Loader } from '@googlemaps/js-api-loader';
 import { useRevealAnimation } from '../utils/animations';
 import { QuoteFormData } from '../types';
 import { useToast } from '@/hooks/use-toast';
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from './ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel } from './ui/form';
 import { useForm } from 'react-hook-form';
+
 
 const tierDetails = {
   standard: {
@@ -89,13 +90,13 @@ const QuoteSection = () => {
       // Generate PDF quote
       const pdfUrl = generateQuotePDF(
         formData.tier, 
-        formData.name, 
-        formData.companyName, 
-        formData.duration, 
+        formData.name,
+        formData.companyName,
+        formData.phone,
+        formData.duration,
         isAnnual,
         formData.address
       );
-      
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
