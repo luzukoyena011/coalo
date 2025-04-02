@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Loader } from '@googlemaps/js-api-loader';
 import { useRevealAnimation } from '../utils/animations';
 import { QuoteFormData } from '../types';
 import { useToast } from '@/hooks/use-toast';
@@ -10,6 +9,7 @@ import { Checkbox } from './ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel } from './ui/form';
 import { useForm } from 'react-hook-form';
 import AddressAutocomplete from './AddressAutocomplete';
+import { googleMapsLoader, MAPS_API_KEY } from '../utils/googleMapsLoader';
 
 const tierDetails = {
   standard: {
@@ -69,20 +69,8 @@ const QuoteSection = () => {
   useEffect(() => {
     const initGooglePlaces = async () => {
       try {
-        // Check if API key is available
-        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-        if (!apiKey) {
-          console.warn("Google Maps API key not found. Address autocomplete will not work.");
-          return;
-        }
-        
-        const loader = new Loader({
-          apiKey,
-          version: "weekly",
-          libraries: ["places"]
-        });
-        
-        const google = await loader.load();
+        // Use shared loader instead of creating a new one
+        const google = await googleMapsLoader.load();
         
         if (addressInputRef.current && google.maps.places) {
           const autocomplete = new google.maps.places.Autocomplete(addressInputRef.current, {
@@ -336,7 +324,6 @@ const QuoteSection = () => {
                       value={formData.address}
                       onChange={handleAddressChange}
                       required
-                      placeholder="123 Business St, Johannesburg"
                       className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
                       placeholder="123 Business St, Johannesburg"
                     />
