@@ -24,7 +24,7 @@ const priceTiers: PriceTier[] = [
     annualPrice: 21250,
     description: 'Ideal for growing businesses seeking more flexibility and impact.',
     features: [
-      '20-second advert',
+      '30-second advert',
       'Enhanced scheduling flexibility',
       'Mix of static and limited dynamic content',
       'Higher cycle frequency',

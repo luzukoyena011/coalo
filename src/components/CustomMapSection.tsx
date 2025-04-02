@@ -1,16 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+
+import { useState } from 'react';
 import { useRevealAnimation } from '../utils/animations';
 import { BillboardLocation } from '../types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Map as MapIcon, Pin, MapPin } from 'lucide-react';
-import { googleMapsLoader } from '../utils/googleMapsLoader';
-
-// Define Google Maps types directly
-declare global {
-  interface Window {
-    google: typeof google;
-  }
-}
+import { Map, Pin, MapPin } from 'lucide-react';
 
 // Billboard locations data
 const billboardLocations: BillboardLocation[] = [
@@ -42,131 +35,19 @@ const billboardLocations: BillboardLocation[] = [
 
 const CustomMapSection = () => {
   const [selectedLocation, setSelectedLocation] = useState<BillboardLocation | null>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [googleMap, setGoogleMap] = useState<google.maps.Map | null>(null);
-  const [currentMarker, setCurrentMarker] = useState<google.maps.marker.AdvancedMarkerElement | google.maps.Marker | null>(null);
-  
-  const mapRef = useRef<HTMLDivElement>(null);
   const headerReveal = useRevealAnimation();
   const mapReveal = useRevealAnimation();
-
-  // Initialize Google Maps API
-  useEffect(() => {
-    const initMap = async () => {
-      try {
-        // Use the shared loader instead of creating a new one
-        await googleMapsLoader.load();
-        setMapLoaded(true);
-      } catch (error) {
-        console.error("Error loading Google Maps API:", error);
-      }
-    };
-
-    initMap();
-  }, []);
-
-  // Create or update the map when a location is selected
-  useEffect(() => {
-    if (!mapLoaded || !mapRef.current || !selectedLocation || !window.google) return;
-
-    const { coordinates } = selectedLocation;
-    const position = { lat: coordinates[0], lng: coordinates[1] };
-
-    // If map doesn't exist yet, create it
-    if (!googleMap) {
-      const map = new window.google.maps.Map(mapRef.current, {
-        center: position,
-        zoom: 15,
-        mapTypeControl: true,
-        streetViewControl: true,
-        fullscreenControl: true,
-        zoomControl: true
-      });
-      setGoogleMap(map);
-      
-      // Create standard marker first - simpler and more reliable
-      const marker = new window.google.maps.Marker({
-        position,
-        map,
-        title: selectedLocation.name
-      });
-      setCurrentMarker(marker);
-      
-      // Add info window for the marker
-      const infoWindow = new window.google.maps.InfoWindow({
-        content: `
-          <div style="padding: 8px;">
-            <h3 style="font-weight: bold; margin-bottom: 5px;">${selectedLocation.name}</h3>
-            <p>${selectedLocation.trafficVolume}</p>
-          </div>
-        `
-      });
-      
-      marker.addListener('click', () => {
-        infoWindow.open(map, marker);
-      });
-      
-      // Automatically open info window
-      infoWindow.open(map, marker);
-    } else {
-      // Update the existing map
-      googleMap.setCenter(position);
-      
-      // Remove existing marker
-      if (currentMarker) {
-        // Handle both marker types
-        if ('setMap' in currentMarker) {
-          currentMarker.setMap(null);
-        } else if ('map' in currentMarker) {
-          currentMarker.map = null;
-        }
-      }
-      
-      // Create standard marker - simpler and more reliable
-      const marker = new window.google.maps.Marker({
-        position,
-        map: googleMap,
-        title: selectedLocation.name
-      });
-      setCurrentMarker(marker);
-      
-      // Add info window for standard marker
-      const infoWindow = new window.google.maps.InfoWindow({
-        content: `
-          <div style="padding: 8px;">
-            <h3 style="font-weight: bold; margin-bottom: 5px;">${selectedLocation.name}</h3>
-            <p>${selectedLocation.trafficVolume}</p>
-          </div>
-        `
-      });
-      
-      marker.addListener('click', () => {
-        infoWindow.open(googleMap, marker);
-      });
-      
-      // Automatically open info window
-      infoWindow.open(googleMap, marker);
-    }
-  }, [selectedLocation, mapLoaded, googleMap]);
-
-  // Clean up Google Maps instances on unmount
-  useEffect(() => {
-    return () => {
-      if (currentMarker) {
-        // Handle both marker types
-        if ('setMap' in currentMarker) {
-          currentMarker.setMap(null);
-        } else if ('map' in currentMarker) {
-          currentMarker.map = null;
-        }
-      }
-      setGoogleMap(null);
-    };
-  }, []); // We want this to run only on unmount
 
   const handleLocationChange = (locationId: string) => {
     const location = billboardLocations.find(loc => loc.id === locationId) || null;
     setSelectedLocation(location);
+  };
+
+  // Function to generate map URL with marker (in a real app, this would use a mapping API)
+  const getMapImageUrl = (location: BillboardLocation) => {
+    // This is a placeholder for demonstration - in a real app, you'd use Google Maps, Mapbox, etc.
+    // The URL below is just an example and won't work as-is
+    return `https://maps.googleapis.com/maps/api/staticmap?center=${location.coordinates[0]},${location.coordinates[1]}&zoom=15&size=600x400&markers=color:red%7C${location.coordinates[0]},${location.coordinates[1]}&key=YOUR_API_KEY`;
   };
 
   return (
@@ -209,29 +90,25 @@ const CustomMapSection = () => {
             </div>
 
             <div className="h-96 bg-coalo-cream/10 relative">
-              {/* Google Maps container */}
-              <div 
-                ref={mapRef} 
-                className="w-full h-full"
-                style={{ display: selectedLocation && mapLoaded ? 'block' : 'none' }}
-              />
-              
-              {/* Placeholder when no location is selected */}
-              {!selectedLocation && (
+              {selectedLocation ? (
+                <>
+                  {/* In a real app, this would be an interactive map */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <MapPin className="w-16 h-16 text-coalo-clay mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-coalo-stone mb-2">{selectedLocation.name}</h3>
+                      <p className="text-coalo-stone/80 flex items-center justify-center gap-2">
+                        <Map className="w-5 h-5" />
+                        {selectedLocation.trafficVolume}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center text-coalo-stone/60">
-                    <MapIcon className="w-16 h-16 mx-auto mb-4 opacity-40" />
+                    <Map className="w-16 h-16 mx-auto mb-4 opacity-40" />
                     <p>Select a billboard location to view on the map</p>
-                  </div>
-                </div>
-              )}
-              
-              {/* Loading indicator when location is selected but map isn't loaded */}
-              {selectedLocation && !mapLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-12 h-12 border-4 border-coalo-moss/30 border-t-coalo-moss rounded-full animate-spin mb-4 mx-auto"></div>
-                    <p className="text-coalo-stone">Loading map...</p>
                   </div>
                 </div>
               )}

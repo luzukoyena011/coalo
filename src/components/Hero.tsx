@@ -1,3 +1,4 @@
+
 import { useRevealAnimation } from '../utils/animations';
 import { useEffect, useState } from 'react';
 
@@ -27,6 +28,7 @@ const Hero = () => {
           className={`w-full h-full object-cover object-center transition-opacity duration-300 ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           }`}
+          fetchPriority="high"
         />
         {/* Placeholder color while image loads */}
         {!imageLoaded && (

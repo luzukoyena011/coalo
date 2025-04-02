@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRevealAnimation } from '../utils/animations';
 import { BillboardLocation } from '../types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Map, Pin, MapPin } from 'lucide-react';
+import { Map as MapIcon, Pin, MapPin } from 'lucide-react';
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 
 // Billboard locations data
 const billboardLocations: BillboardLocation[] = [
@@ -32,21 +33,59 @@ const billboardLocations: BillboardLocation[] = [
   }
 ];
 
-const CustomMapSection = () => {
+// Map container styles
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%'
+};
+
+// Default center (average of billboard locations)
+const defaultCenter = {
+  lat: -31.59275, // Average latitude
+  lng: 28.78675   // Average longitude
+};
+
+const MapSection = () => {
   const [selectedLocation, setSelectedLocation] = useState<BillboardLocation | null>(null);
+  const [selectedMarker, setSelectedMarker] = useState<BillboardLocation | null>(null);
+  const [mapRef, setMapRef] = useState<google.maps.Map | null>(null);
   const headerReveal = useRevealAnimation();
   const mapReveal = useRevealAnimation();
+
+  // Load Google Maps API
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
+  });
+
+  const onMapLoad = useCallback((map: google.maps.Map) => {
+    setMapRef(map);
+  }, []);
+
+  // Pan to selected location when it changes
+  useEffect(() => {
+    if (mapRef && selectedLocation) {
+      mapRef.panTo({ 
+        lat: selectedLocation.coordinates[0], 
+        lng: selectedLocation.coordinates[1] 
+      });
+      mapRef.setZoom(16);
+    }
+  }, [selectedLocation, mapRef]);
 
   const handleLocationChange = (locationId: string) => {
     const location = billboardLocations.find(loc => loc.id === locationId) || null;
     setSelectedLocation(location);
   };
 
-  // Function to generate map URL with marker (in a real app, this would use a mapping API)
-  const getMapImageUrl = (location: BillboardLocation) => {
-    // This is a placeholder for demonstration - in a real app, you'd use Google Maps, Mapbox, etc.
-    // The URL below is just an example and won't work as-is
-    return `https://maps.googleapis.com/maps/api/staticmap?center=${location.coordinates[0]},${location.coordinates[1]}&zoom=15&size=600x400&markers=color:red%7C${location.coordinates[0]},${location.coordinates[1]}&key=YOUR_API_KEY`;
+  const handleMarkerClick = (location: BillboardLocation) => {
+    setSelectedMarker(location);
+    if (mapRef) {
+      mapRef.panTo({ 
+        lat: location.coordinates[0], 
+        lng: location.coordinates[1] 
+      });
+    }
   };
 
   return (
@@ -89,24 +128,87 @@ const CustomMapSection = () => {
             </div>
 
             <div className="h-96 bg-coalo-cream/10 relative">
-              {selectedLocation ? (
-                <>
-                  {/* In a real app, this would be an interactive map */}
+              {loadError && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <MapPin className="w-16 h-16 text-coalo-clay mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-coalo-stone mb-2">{selectedLocation.name}</h3>
-                      <p className="text-coalo-stone/80 flex items-center justify-center gap-2">
-                        <Map className="w-5 h-5" />
-                        {selectedLocation.trafficVolume}
-                      </p>
-                    </div>
+                  <div className="text-center text-coalo-stone/60">
+                    <p className="text-red-500">Error loading Google Maps. Please check your API key.</p>
                   </div>
-                </>
-              ) : (
+                    </div>
+              )}
+              
+              {!isLoaded && !loadError && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center text-coalo-stone/60">
-                    <Map className="w-16 h-16 mx-auto mb-4 opacity-40" />
+                    <p>Loading map...</p>
+                  </div>
+                </div>
+              )}
+              
+              {isLoaded && !loadError && (
+                <GoogleMap
+                  mapContainerStyle={mapContainerStyle}
+                  center={
+                    selectedLocation 
+                      ? { lat: selectedLocation.coordinates[0], lng: selectedLocation.coordinates[1] } 
+                      : defaultCenter
+                  }
+                  zoom={selectedLocation ? 16 : 14}
+                  options={{
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    zoomControl: true,
+                    fullscreenControl: false,
+                    styles: [
+                      {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [{ visibility: "off" }]
+                      }
+                    ]
+                  }}
+                  onLoad={onMapLoad}
+                >
+                  {billboardLocations.map((location) => (
+                    <Marker
+                      key={location.id}
+                      position={{ 
+                        lat: location.coordinates[0], 
+                        lng: location.coordinates[1] 
+                      }}
+                      onClick={() => handleMarkerClick(location)}
+                      icon={{
+                        url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+                        scaledSize: new window.google.maps.Size(40, 40)
+                      }}
+                      animation={
+                        selectedLocation?.id === location.id 
+                          ? window.google.maps.Animation.BOUNCE 
+                          : undefined
+                      }
+                    />
+                  ))}
+                  
+                  {selectedMarker && (
+                    <InfoWindow
+                      position={{ 
+                        lat: selectedMarker.coordinates[0], 
+                        lng: selectedMarker.coordinates[1] 
+                      }}
+                      onCloseClick={() => setSelectedMarker(null)}
+                    >
+                      <div className="p-2">
+                        <h3 className="font-medium text-sm mb-1">{selectedMarker.name}</h3>
+                        <p className="text-xs text-gray-600">{selectedMarker.trafficVolume}</p>
+                      </div>
+                    </InfoWindow>
+                  )}
+                </GoogleMap>
+              )}
+              
+              {!isLoaded && !selectedLocation && !loadError && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-coalo-stone/60">
+                    <MapIcon className="w-16 h-16 mx-auto mb-4 opacity-40" />
                     <p>Select a billboard location to view on the map</p>
                   </div>
                 </div>
@@ -139,4 +241,4 @@ const CustomMapSection = () => {
   );
 };
 
-export default CustomMapSection;
+export default MapSection;

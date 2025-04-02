@@ -1,5 +1,6 @@
+
 import React, { useEffect, useRef, useState } from 'react';
-import { googleMapsLoader } from '../utils/googleMapsLoader';
+import { Loader } from '@googlemaps/js-api-loader';
 
 interface AddressAutocompleteProps {
   value: string;
@@ -23,8 +24,14 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
 
   useEffect(() => {
-    // Load Google Maps API using the shared loader
-    googleMapsLoader.load()
+    // Load Google Maps API
+    const loader = new Loader({
+      apiKey: 'AIzaSyAx8epavQrP6MlqiTPP8CNFVhDVkWiH-s0', // This is a publicly available API key for the maps
+      version: 'weekly',
+      libraries: ['places']
+    });
+
+    loader.load()
       .then(() => {
         setIsLoaded(true);
       })
@@ -39,7 +46,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         google.maps.event.clearInstanceListeners(autocomplete);
       }
     };
-  }, [autocomplete]);
+  }, []);
 
   useEffect(() => {
     // Initialize autocomplete once Google Maps is loaded and input ref is available

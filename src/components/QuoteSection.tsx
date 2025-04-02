@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
+import { Loader } from '@googlemaps/js-api-loader';
 import { useRevealAnimation } from '../utils/animations';
 import { QuoteFormData } from '../types';
 import { useToast } from '@/hooks/use-toast';
-import { generateQuotePDF, getPricingDetails, formatCurrency } from '../utils/pdfGenerator';
-import { Check, ChevronDown, ChevronUp, MinusCircle, PlusCircle } from 'lucide-react';
+import { getPricingDetails, formatCurrency } from '../utils/pdfGenerator';
+import { Check, MinusCircle, PlusCircle, FileText } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Checkbox } from './ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel } from './ui/form';
-import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
 import AddressAutocomplete from './AddressAutocomplete';
-import { googleMapsLoader, MAPS_API_KEY } from '../utils/googleMapsLoader';
 
 const tierDetails = {
   standard: {
@@ -53,24 +52,35 @@ const QuoteSection = () => {
     companyName: '',
     email: '',
     phone: '',
-    tier: 'standard',
+    tier: 'pro', // Default to Pro
     address: '',
     duration: 1
   });
   const [isAnnual, setIsAnnual] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [quoteGenerated, setQuoteGenerated] = useState(false);
   const { toast } = useToast();
-  const headerReveal = useRevealAnimation();
-  const formReveal = useRevealAnimation();
-  const form = useForm();
+  const sectionReveal = useRevealAnimation();
   const addressInputRef = useRef<HTMLInputElement>(null);
 
   // Google Maps API initialization
   useEffect(() => {
     const initGooglePlaces = async () => {
       try {
-        // Use shared loader instead of creating a new one
-        const google = await googleMapsLoader.load();
+        // Check if API key is available
+        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+        if (!apiKey) {
+          console.warn("Google Maps API key not found. Address autocomplete will not work.");
+          return;
+        }
+        
+        const loader = new Loader({
+          apiKey,
+          version: "weekly",
+          libraries: ["places"]
+        });
+        
+        const google = await loader.load();
         
         if (addressInputRef.current && google.maps.places) {
           const autocomplete = new google.maps.places.Autocomplete(addressInputRef.current, {
@@ -116,39 +126,27 @@ const QuoteSection = () => {
     }));
   };
 
+  const handleBillingCycleChange = (isChecked: boolean | 'indeterminate', type: 'monthly' | 'annual') => {
+    if (isChecked === true) {
+      setIsAnnual(type === 'annual');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const pdfUrl = generateQuotePDF(
-        formData.tier, 
-        formData.name,
-        formData.companyName,
-        formData.phone,
-        formData.duration,
-        isAnnual,
-        formData.address
-      );
+      // Just wait a short time to simulate processing
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({
         title: "Quote generated!",
-        description: "Your quote has been prepared successfully.",
+        description: "Your quote has been prepared and displayed.",
         duration: 5000,
       });
       
-      console.log('Quote PDF URL:', pdfUrl);
-      
-      setFormData({
-        name: '',
-        companyName: '',
-        email: '',
-        phone: '',
-        tier: 'standard',
-        address: '',
-        duration: 1,
-      });
+      setQuoteGenerated(true);
     } catch (error) {
       console.error('Error generating quote:', error);
       toast({
@@ -165,32 +163,93 @@ const QuoteSection = () => {
   const selectedPricing = getPricingDetails(formData.tier);
   const cycleDuration = isAnnual ? 'years' : 'months';
 
+  const calculateTotal = () => {
+    if (!selectedPricing) return 0;
+    const basePrice = isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice;
+    return basePrice * formData.duration * 1.15; // Including 15% VAT
+  };
+
   return (
-    <section id="quote" className="py-20 md:py-28 bg-white">
-      <div className="container-custom">
+    <section id="quote" className="py-16 bg-coalo-cream/20">
         <div 
-          ref={headerReveal.ref} 
-          className={`text-center mb-16 transition-all duration-700 ${headerReveal.isIntersecting ? 'opacity-100' : 'opacity-0'}`}
+        className="container-custom"
+        ref={sectionReveal.ref}
         >
+        <div className="text-center mb-10">
           <h2 className="section-title">Get a Quote</h2>
-          <p className="section-subtitle">
-            Select your preferred advertising tier and receive a customized quote instantly.
+          <p className="section-subtitle max-w-2xl mx-auto">
+            Select your advertising options and receive a customized quote for your campaign.
           </p>
         </div>
 
-        <div 
-          ref={formReveal.ref}
-          className={`grid grid-cols-1 lg:grid-cols-2 gap-12 transition-all duration-700 delay-300 ${formReveal.isIntersecting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
-        >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          {/* Left Column - Form */}
+          <div className="bg-white rounded-lg shadow-sm p-8 border border-coalo-sand/10">
+            <h3 className="text-lg font-semibold text-coalo-stone mb-6">Full Name</h3>
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-6">
+                <div>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
+                    placeholder="Your full name"
+                  />
+                </div>
+
+                <h3 className="text-lg font-semibold text-coalo-stone mb-2">Email Address</h3>
+                <div>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
+                    placeholder="your.email@example.com"
+                  />
+                </div>
+
+                <h3 className="text-lg font-semibold text-coalo-stone mb-2">Company Name</h3>
+                <div>
+                  <input
+                    type="text"
+                    id="companyName"
+                    name="companyName"
+                    value={formData.companyName}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
+                    placeholder="Your company name"
+                  />
+                </div>
+
+                <h3 className="text-lg font-semibold text-coalo-stone mb-2">Phone Number</h3>
           <div>
-            <h3 className="text-xl font-semibold text-coalo-stone mb-6">Select Your Advertising Tier</h3>
-            
-            <div className="mb-6">
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
+                    placeholder="Your phone number"
+                  />
+                </div>
+
+                <h3 className="text-lg font-semibold text-coalo-stone mb-2">Select Pricing Tier</h3>
+                <div>
               <Select 
                 onValueChange={(value) => handleTierSelect(value as 'standard' | 'pro' | 'premium')}
                 defaultValue={formData.tier}
               >
-                <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full px-4 py-3 rounded-md border border-coalo-sand/30">
                   <SelectValue placeholder="Select a pricing tier" />
                 </SelectTrigger>
                 <SelectContent>
@@ -201,53 +260,38 @@ const QuoteSection = () => {
               </Select>
             </div>
             
-            <div className="p-6 rounded-xl border-2 border-coalo-moss bg-coalo-cream/10 mb-8">
-              <div className="flex justify-between items-center mb-4">
-                <h4 className="text-lg font-semibold text-coalo-stone">{tierDetails[formData.tier].name}</h4>
-              </div>
-              
-              <ul className="space-y-2">
-                {tierDetails[formData.tier].features.map((feature, index) => (
-                  <li key={index} className="flex items-start">
-                    <Check className="w-5 h-5 text-coalo-moss mt-0.5 mr-2 flex-shrink-0" />
-                    <span className="text-coalo-stone">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            <div className="mb-8">
-              <h4 className="text-lg font-semibold text-coalo-stone mb-3">Billing Cycle</h4>
-              <div className="flex items-center gap-2 mb-2">
+                <h3 className="text-lg font-semibold text-coalo-stone mb-2">Billing Cycle</h3>
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
                 <Checkbox 
                   id="monthly" 
                   checked={!isAnnual} 
-                  onCheckedChange={() => setIsAnnual(false)}
+                      onCheckedChange={(checked) => handleBillingCycleChange(checked, 'monthly')}
                 />
                 <label htmlFor="monthly" className="text-coalo-stone cursor-pointer">
-                  Monthly Billing
+                      Monthly Plan
                 </label>
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox 
                   id="annual" 
                   checked={isAnnual} 
-                  onCheckedChange={() => setIsAnnual(true)}
+                      onCheckedChange={(checked) => handleBillingCycleChange(checked, 'annual')}
                 />
-                <label htmlFor="annual" className="text-coalo-stone cursor-pointer">
-                  Annual Billing <span className="text-coalo-clay">(Save 15%)</span>
+                    <label htmlFor="annual" className="text-coalo-stone font-medium cursor-pointer">
+                      Annual Plan <span className="text-coalo-clay">(15% discount)</span>
                 </label>
               </div>
             </div>
 
-            <div className="mb-8">
-              <h4 className="text-lg font-semibold text-coalo-stone mb-3">Broadcast Duration</h4>
+                <h3 className="text-lg font-semibold text-coalo-stone mb-2">Broadcast Duration</h3>
+                <div>
               <div className="flex items-center space-x-4">
                 <button 
                   type="button"
                   onClick={() => handleDurationChange(false)}
                   disabled={formData.duration <= 1}
-                  className="p-1 rounded-full hover:bg-coalo-cream disabled:opacity-50"
+                      className="p-1 rounded-full hover:bg-coalo-cream disabled:opacity-50 transition-colors"
                   aria-label="Decrease duration"
                 >
                   <MinusCircle className="w-6 h-6 text-coalo-clay" />
@@ -261,7 +305,7 @@ const QuoteSection = () => {
                   type="button"
                   onClick={() => handleDurationChange(true)}
                   disabled={formData.duration >= 10}
-                  className="p-1 rounded-full hover:bg-coalo-cream disabled:opacity-50"
+                      className="p-1 rounded-full hover:bg-coalo-cream disabled:opacity-50 transition-colors"
                   aria-label="Increase duration"
                 >
                   <PlusCircle className="w-6 h-6 text-coalo-moss" />
@@ -275,167 +319,118 @@ const QuoteSection = () => {
                 Select between 1 and 10 {cycleDuration}
               </p>
             </div>
-          </div>
-          
-          <div>
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-coalo-sand/10">
-              <h3 className="text-xl font-semibold text-coalo-stone mb-6">Your Information</h3>
-              
-              <form onSubmit={handleSubmit}>
-                <div className="space-y-4 mb-6">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-coalo-stone mb-1">
-                      Your Name
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
-                      placeholder="John Doe"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="companyName" className="block text-sm font-medium text-coalo-stone mb-1">
-                      Company Name
-                    </label>
-                    <input
-                      type="text"
-                      id="companyName"
-                      name="companyName"
-                      value={formData.companyName}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
-                      placeholder="Acme Inc."
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="address" className="block text-sm font-medium text-coalo-stone mb-1">
-                      Company Address
-                    </label>
-                    <AddressAutocomplete
-                      id="address"
-                      value={formData.address}
-                      onChange={handleAddressChange}
-                      required
-                      className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
-                      placeholder="123 Business St, Johannesburg"
-                    />
-                    <p className="mt-1 text-xs text-coalo-stone/70">
-                      Powered by Google Places
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-coalo-stone mb-1">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
-                      placeholder="johndoe@example.com"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-coalo-stone mb-1">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-2 rounded-md border border-coalo-sand/30 focus:outline-none focus:ring-2 focus:ring-coalo-moss/50"
-                      placeholder="+27 123 456 7890"
-                    />
-                  </div>
-                </div>
                 
-                <div className="bg-coalo-cream/20 p-6 rounded-lg mb-6">
-                  <h4 className="font-medium text-coalo-stone mb-3">Quote Summary</h4>
-                  
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between">
-                      <span className="text-coalo-stone/80">Selected Plan:</span>
-                      <span className="font-medium text-coalo-stone">{tierDetails[formData.tier].name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-coalo-stone/80">Billing Cycle:</span>
-                      <span className="font-medium text-coalo-stone">{isAnnual ? 'Annual' : 'Monthly'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-coalo-stone/80">Duration:</span>
-                      <span className="font-medium text-coalo-stone">{formData.duration} {cycleDuration}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-coalo-stone/80">{isAnnual ? 'Annual Price:' : 'Monthly Price:'}</span>
-                      <span className="font-medium text-coalo-stone">
-                        {formatCurrency(isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice)}
-                      </span>
-                    </div>
-                    <div className="border-t border-coalo-sand/30 my-2 pt-2 flex justify-between">
-                      <span className="text-coalo-stone/80">Subtotal:</span>
-                      <span className="font-medium text-coalo-stone">
-                        {formatCurrency((isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice) * formData.duration)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-coalo-stone/80">VAT (15%):</span>
-                      <span className="font-medium text-coalo-stone">
-                        {formatCurrency((isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice) * formData.duration * 0.15)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-lg">
-                      <span className="font-medium text-coalo-stone">Total:</span>
-                      <span className="font-bold text-coalo-clay">
-                        {formatCurrency((isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice) * formData.duration * 1.15)}
-                      </span>
-                    </div>
-                    {isAnnual && (
-                      <div className="mt-2 text-sm text-coalo-clay">
-                        You save: {formatCurrency(selectedPricing.monthlyPrice * 12 * 0.15 * formData.duration)} per {formData.duration > 1 ? `${formData.duration} years` : 'year'}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <p className="text-xs text-coalo-stone/70">
-                    * Quote is valid for 30 days. All prices include VAT.
-                  </p>
-                </div>
-                
-                <button
+                <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn-primary w-full flex justify-center items-center"
+                  className="w-full bg-coalo-earth hover:bg-coalo-earth/90 text-white font-medium py-3 px-6 rounded-md transition-colors mt-4"
                 >
                   {isSubmitting ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                       Generating Quote...
                     </>
                   ) : (
-                    'Generate Quote PDF'
+                    'Generate Quote'
                   )}
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
+          </div>
+          
+          {/* Right Column - Quote Display */}
+          <div className="bg-white rounded-lg shadow-sm p-8 border border-coalo-sand/10 flex flex-col items-center justify-center min-h-[500px] text-center">
+            {quoteGenerated ? (
+              <div className="w-full">
+                <div className="mb-6">
+                  <h3 className="text-2xl font-semibold text-coalo-stone mb-2">Your Quote</h3>
+                  <p className="text-coalo-stone/70">Quote #QUO-{new Date().getFullYear()}-{Math.floor(Math.random() * 1000)}</p>
+                </div>
+                
+                <div className="bg-coalo-cream/20 p-6 rounded-lg mb-6 text-left">
+                  <div className="border-b border-coalo-sand/30 pb-4 mb-4">
+                    <h4 className="text-lg font-medium text-coalo-stone mb-2">Client Information</h4>
+                    <p className="text-sm text-coalo-stone/80">{formData.name}</p>
+                    <p className="text-sm text-coalo-stone/80">{formData.companyName}</p>
+                    <p className="text-sm text-coalo-stone/80">{formData.email}</p>
+                    <p className="text-sm text-coalo-stone/80">{formData.phone}</p>
+                  </div>
+                  
+                  <div className="border-b border-coalo-sand/30 pb-4 mb-4">
+                    <h4 className="text-lg font-medium text-coalo-stone mb-2">Service Details</h4>
+                    <p className="flex justify-between text-sm">
+                      <span className="text-coalo-stone/80">Plan:</span>
+                      <span className="font-medium text-coalo-stone">{tierDetails[formData.tier].name}</span>
+                    </p>
+                    <p className="flex justify-between text-sm">
+                      <span className="text-coalo-stone/80">Billing:</span>
+                      <span className="font-medium text-coalo-stone">{isAnnual ? 'Annual' : 'Monthly'}</span>
+                    </p>
+                    <p className="flex justify-between text-sm">
+                      <span className="text-coalo-stone/80">Duration:</span>
+                      <span className="font-medium text-coalo-stone">{formData.duration} {cycleDuration}</span>
+                    </p>
+                    </div>
+                  
+                  <div>
+                    <h4 className="text-lg font-medium text-coalo-stone mb-2">Price Breakdown</h4>
+                    <p className="flex justify-between text-sm">
+                      <span className="text-coalo-stone/80">Base Price:</span>
+                      <span className="font-medium text-coalo-stone">
+                        {formatCurrency(isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice)}
+                        / {isAnnual ? 'year' : 'month'}
+                      </span>
+                    </p>
+                    <p className="flex justify-between text-sm">
+                      <span className="text-coalo-stone/80">Subtotal:</span>
+                      <span className="font-medium text-coalo-stone">
+                        {formatCurrency((isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice) * formData.duration)}
+                      </span>
+                    </p>
+                    <p className="flex justify-between text-sm">
+                      <span className="text-coalo-stone/80">VAT (15%):</span>
+                      <span className="font-medium text-coalo-stone">
+                        {formatCurrency((isAnnual ? selectedPricing.annualPrice : selectedPricing.monthlyPrice) * formData.duration * 0.15)}
+                      </span>
+                    </p>
+                    {isAnnual && (
+                      <p className="flex justify-between text-sm text-coalo-clay">
+                        <span>Savings:</span>
+                        <span className="font-medium">
+                          {formatCurrency(selectedPricing.monthlyPrice * 12 * 0.15 * formData.duration)}
+                        </span>
+                      </p>
+                    )}
+                    <div className="border-t border-coalo-sand/30 mt-3 pt-3">
+                      <p className="flex justify-between">
+                        <span className="font-medium text-coalo-stone">Total:</span>
+                        <span className="font-bold text-coalo-clay text-lg">
+                          {formatCurrency(calculateTotal())}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-coalo-stone/70 text-center">
+                  Thank you for your interest! A representative will contact you shortly.
+                </p>
+              </div>
+            ) : (
+              <div className="text-center p-6">
+                <div className="mb-6 w-20 h-20 mx-auto bg-coalo-cream/50 rounded-full flex items-center justify-center">
+                  <FileText className="h-10 w-10 text-coalo-moss" />
+                </div>
+                <h3 className="text-2xl font-semibold text-coalo-stone mb-3">Your Quote Will Appear Here</h3>
+                <p className="text-coalo-stone/70 max-w-sm mx-auto">
+                  Fill out the form to generate a detailed quote for your
+                  selected advertising package.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

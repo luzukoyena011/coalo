@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
@@ -6,7 +5,7 @@ import AboutSection from '../components/AboutSection';
 import PricingSection from '../components/PricingSection';
 import ServiceOffering from '../components/ServiceOffering';
 import WorkSection from '../components/WorkSection';
-import CustomMapSection from '../components/CustomMapSection';
+import MapSection from '../components/MapSection';
 import ContactSection from '../components/ContactSection';
 import QuoteSection from '../components/QuoteSection';
 import Footer from '../components/Footer';
@@ -67,7 +66,7 @@ const Index = () => {
         <PricingSection />
         <ServiceOffering />
         <WorkSection />
-        <CustomMapSection />
+        <MapSection />
         <ContactSection />
         <QuoteSection />
       </main>
