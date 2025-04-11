@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
@@ -9,6 +10,9 @@ import MapSection from '../components/MapSection';
 import ContactSection from '../components/ContactSection';
 import QuoteSection from '../components/QuoteSection';
 import Footer from '../components/Footer';
+
+// Flag to control visibility of WorkSection - set to false to hide
+const SHOW_WORK_SECTION = false;
 
 const Index = () => {
   // Scroll to specific section if URL has hash
@@ -65,7 +69,7 @@ const Index = () => {
         <AboutSection />
         <PricingSection />
         <ServiceOffering />
-        <WorkSection />
+        {SHOW_WORK_SECTION && <WorkSection />}
         <MapSection />
         <ContactSection />
         <QuoteSection />
