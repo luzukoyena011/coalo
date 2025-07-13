@@ -43,11 +43,11 @@ const Hero = () => {
           </div>
           
           <h1 className="text-hero-sm md:text-hero-md lg:text-hero-lg xl:text-hero-xl font-display font-semibold mb-6 leading-tight">
-            <span className="text-[#54585a]">Coalō:</span> <span className="text-gradient">Nurturing Brands</span> <br className="hidden md:block" />
-            <span className="text-[#54585a]">Uniting Communities</span>
+            <span className="text-[#333333]">Coalō:</span> <span className="text-[#17341B]">Nurturing Brands</span> <br className="hidden md:block" />
+            <span className="text-[#333333]">Uniting Communities</span>
           </h1>
           
-          <p className="text-lg md:text-xl text-[#8a7968] mb-8 max-w-2xl">
+          <p className="text-lg md:text-xl text-[#534741] mb-8 max-w-2xl">
             We combine AI-driven technology with strategic outdoor <br/> advertising to foster growth and meaningful connections in urban spaces.
           </p>
           
@@ -55,7 +55,7 @@ const Hero = () => {
             <a href="#quote" className="btn-primary text-center">
               Get a Quote
             </a>
-            <a href="#about" className="btn-outline text-coalo-moss hover:bg-white/10 text-center">
+            <a href="#about" className="btn-outline text-coalo-moss hover:bg-[#333333] hover:text-white text-center">
               Learn More
             </a>
           </div>
