@@ -42,7 +42,7 @@ const Hero = () => {
             <p className="text-sm font-medium text-coalo-earth">Innovative Digital OOH Advertising</p>
           </div>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-display font-semibold mb-6 leading-tight">
+          <h1 className="text-hero-sm md:text-hero-md lg:text-hero-lg xl:text-hero-xl font-display font-semibold mb-6 leading-tight">
             <span className="text-[#54585a]">Coalō:</span> <span className="text-gradient">Nurturing Brands</span> <br className="hidden md:block" />
             <span className="text-[#54585a]">Uniting Communities</span>
           </h1>

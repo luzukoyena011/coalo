@@ -137,6 +137,23 @@
   .text-gradient {
     @apply bg-gradient-to-r from-coalo-moss to-coalo-forest bg-clip-text text-transparent;
   }
+
+  /* Custom hero text sizes */
+  .text-hero-sm {
+    font-size: 31px;
+  }
+
+  .text-hero-md {
+    font-size: 43px;
+  }
+
+  .text-hero-lg {
+    font-size: 55px;
+  }
+
+  .text-hero-xl {
+    font-size: 67px;
+  }
 }
 
 /* Custom scrollbar */
