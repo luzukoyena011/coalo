@@ -48,7 +48,7 @@ const Hero = () => {
           </h1>
           
           <p className="text-lg md:text-xl text-[#8a7968] mb-8 max-w-2xl">
-            We combine AI-driven technology with strategic outdoor advertising to foster growth and meaningful connections in urban spaces.
+            We combine AI-driven technology with strategic outdoor <br/> advertising to foster growth and meaningful connections in urban spaces.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">
